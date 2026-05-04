@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>A Look InSYDE – Class of '29</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@900&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { 
+  width: 100%; 
+  height: 100%; 
+  overflow: hidden; 
+}
+body { 
+  background: #0c0e15; 
+  font-family: 'Barlow', 'Arial Black', sans-serif; 
+}
+.scene { 
+  position:relative; 
+  width:100vw; 
+  height:100vh; 
+  background:#0c0e15; 
+  overflow:hidden; 
+}
+ 
+.content {
+  position:absolute; 
+  inset:0; display:flex; 
+  flex-direction:column;
+  justify-content:center; 
+  padding-left:13%;
+}
+.line-look { 
+  font-weight:900; 
+  font-size:clamp(28px,5.2vw,80px); 
+  color:#EAEBED; 
+  text-transform:uppercase; 
+  letter-spacing:.02em; 
+  line-height:1; 
+}
+.line-insyde { 
+  display:flex; 
+  align-items:flex-end; 
+  line-height:1; 
+  gap:.12em; 
+}
+.line-in { 
+  font-weight:900; 
+  font-size:clamp(28px,5.2vw,80px); 
+  color:#EAEBED; 
+  text-transform:uppercase; 
+  letter-spacing:.02em; 
+  padding-bottom:.13em; 
+}
+.line-syde { 
+  font-weight:900; 
+  font-size:clamp(80px,16vw,240px); 
+  color:#EAEBED; text-transform:uppercase; 
+  letter-spacing:-.02em; 
+  line-height:.85; 
+}
+.line-class { 
+  font-weight:900; 
+  font-size:clamp(16px,3vw,46px); 
+  color:#EAEBED; 
+  text-transform:uppercase; 
+  letter-spacing:.05em; 
+  line-height:1; 
+  margin-top:.1em; 
+  padding-left:4.2em; 
+}
+ 
+.choose-btn-wrap { 
+  position:absolute; 
+  bottom:10%; 
+  right:12%; 
+}
+.choose-btn {
+  font-family:'Barlow','Arial Black',sans-serif; 
+  font-weight:1000; 
+  font-size:clamp(20px,1.5vw,21px);
+  text-transform:uppercase; 
+  letter-spacing:.1em; 
+  color:#1a0800;
+  background:linear-gradient(90deg,#f5a020 0%,#c5f055 100%);
+  border:none; 
+  border-radius:200px; 
+  padding:.55em 1.9em; 
+  cursor:pointer;
+  transition: all 0.25s ease;
+}
+
+.choose-btn:hover {
+  background: #ffffff;
+  color: #12151B;
+}
+.choose-btn.ready:hover { 
+  background:#fff; 
+  color:#12151B; 
+  }
+
+  
+.choose-btn.ready { opacity: 1; pointer-events: all; }
+
+</style>
+</head>
+<body>
+<div class="scene">
+  
+ 
+  <canvas id="c" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+ 
+  <div class="content">
+    <div class="line-look">A LOOK</div>
+    <div class="line-insyde">
+      <span class="line-in">IN</span>
+      <span class="line-syde">SYDE</span>
+    </div>
+    <div class="line-class">CLASS OF '29!</div>
+  </div>
+ 
+  <div class="choose-btn-wrap">
+    <button class="choose-btn" id="chooseBtn">Let's Go!</button>
+  </div>
+</div>
+ 
+<script>
+//star bg
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+
+  // glow background
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+
+  glow.forEach((g, i) => {
+    bg.addColorStop(g.stop, g.color(a));
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.restore();
+
+  // star layers
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80;
+    const sh = sH * t;
+    const sv = sV * t;
+
+    const [r, g, b] = colorFn(t);
+
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+
+    const wx = sh * 0.08;
+    const wy = sv * 0.08;
+
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+const greenStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    58 + (180 - 58) * t,
+    79 + (240 - 79) * t,
+    212 + (50 - 212) * t
+  ]
+};
+const purpleStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(120,40,200,${a * 0.3})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    80 + (130 - 80) * t,
+    30 + (60 - 30) * t,
+    255
+  ]
+};
+const pinkStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(200,60,130,${a * 0.28})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    255,
+    60 + (150 - 60) * t,
+    180 + (80 - 180) * t
+  ]
+};
+
+function renderBg() {
+  const c = document.getElementById('c');
+  const W = c.width = c.offsetWidth;
+  const H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+
+  ctx.clearRect(0, 0, W, H);
+
+  const sH = Math.min(W, H) * 0.3;
+  const sV = Math.min(W, H) * 0.36;
+
+  ctx.filter = 'blur(14px)';
+
+  drawStar(ctx, W * 0.1, H * 0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W * 0.88, H * 0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.85, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
+
+  ctx.filter = 'none';
+}
+
+window.addEventListener('load',()=>{renderBg();drawCoop();drawGender();});
+window.addEventListener('resize',()=>{renderBg();drawCoop();drawGender();});
+
+//button
+const chooseBtn = document.getElementById('chooseBtn');
+
+chooseBtn.onclick = () => {
+  window.location.href = "choose.html"; // or whatever your next page is
+};
+</script>
+</body>
+</html>
+ 

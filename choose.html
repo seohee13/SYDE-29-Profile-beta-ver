@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@900&display=swap" rel="stylesheet"/>
+<style>
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { 
+  width: 100%; 
+  height: 100%; 
+  overflow: hidden; 
+  } 
+
+  #bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  }
+  body {
+    background: #121518;
+    color: #EAEBED;
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: #0c0e15; 
+    font-family: 'Barlow', 'Arial Black', sans-serif;
+  }
+
+  h1 {
+  font-weight:900; 
+  font-size:clamp(28px,5.2vw,80px); 
+  color:#EAEBED; 
+  text-transform:uppercase; 
+  letter-spacing:.02em; 
+  padding-bottom:.13em; 
+  }
+
+  .scene { 
+  position:relative; 
+  width:100vw; 
+  height:100vh; 
+  background:#0c0e15; 
+  overflow:hidden; 
+  }
+  .screen { 
+    display: none; 
+    min-height: 100vh; 
+    position: relative; 
+  }
+  .screen.active { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+  }
+
+  
+  /* ---- CHOOSE CHARACTER ---- */
+  #screen-choose { padding: 100px 32px 60px; }
+  .section-title {
+    text-align: center;
+    position: relative; z-index: 10;
+     font-weight:900; 
+    font-size:clamp(28px,5.2vw,80px); 
+    color:#EAEBED; 
+    text-transform:uppercase; 
+    letter-spacing:.02em; 
+    padding-bottom:.13em; 
+  }
+  .section-sub {
+    color: rgba(234,235,237,0.5);
+    text-align: center; margin-bottom: 48px;
+    position: relative; z-index: 10;
+    font-weight:10; 
+    font-size:clamp(14px,5.2vw,10px); 
+    text-transform:uppercase; 
+    letter-spacing:.02em; 
+    padding-bottom:.13em; 
+  }
+
+  .carousel-wrapper {
+    width: 100%; max-width: 960px;
+    position: relative; 
+    z-index: 10;
+  }
+  .carousel-track-outer {
+    overflow: hidden; 
+    width: 100%;
+  }
+  .carousel-track {
+    display: flex; 
+    gap: 20px;
+    transition: transform 0.45s cubic-bezier(0.25,0.8,0.25,1);
+  }
+  .char-card {
+    flex: 0 0 240px; min-height: 300px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    padding: 28px 22px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    text-align: center;
+    position: relative;
+    font-size:clamp(28px,5.2vw,80px); 
+    letter-spacing:.02em; 
+    padding-bottom:.13em; 
+  }
+  .char-card:hover { 
+    border-color: rgba(255,134,246,0.4); 
+    transform: translateY(-4px); 
+    background: rgba(255,255,255,0.07); 
+} 
+  .char-card.selected {
+    border-color: #FF86F6;
+    background: rgba(255,134,246,0.1);
+    box-shadow: 0 0 32px rgba(255,134,246,0.2);
+  }
+  .char-avatar {
+    width: 200px; height: 200px; border-radius: 5%;
+    margin-bottom: 16px;
+    font-size: 36px; display: flex; align-items: center; justify-content: center;
+    background: rgba(100, 69, 113, 0.774);
+    border: 2px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+  }
+
+  .char-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+  .char-name { 
+    font-size: 18px; 
+    font-weight: 700; 
+    margin-bottom: 8px; 
+  }
+  .char-bio { 
+    font-size: 13px; 
+    color: rgba(234,235,237,0.5); 
+    line-height: 1.55; }
+
+  .char-select-badge {
+    display: none; margin-top: 16px;
+    background: #FF86F6; color: #121518;
+    border-radius: 20px; padding: 5px 16px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  }
+  .char-card.selected .char-select-badge { 
+    display: block; 
+  }
+
+  .carousel-controls {
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    gap: 16px; margin-top: 32px;
+  }
+  .carousel-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: #EAEBED; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    animation-play-state: paused;
+  }
+  .carousel-btn:hover { 
+    background: rgba(255,134,246,0.15); 
+    border-color: #FF86F6; 
+  }
+
+  .carousel-dots { 
+    display: flex; 
+    gap: 6px; }
+
+  .carousel-dot {
+    width: px; 
+    height: 30px; 
+    background: rgba(255,255,255,0.2); 
+    transition: all 0.2s;
+  }
+  .carousel-dot.active { background: #FF86F6; width: 18px; border-radius: 3px; }
+
+.choose-btn-wrap { 
+  position:absolute; 
+  bottom:10%; 
+  right:12%; 
+}
+.choose-btn {
+  font-family:'Barlow','Arial Black',sans-serif; 
+  font-weight:1000; 
+  font-size:clamp(20px,1.5vw,21px);
+  text-transform:uppercase; 
+  letter-spacing:.1em; 
+  color:#1a0800;
+  background:linear-gradient(90deg,#f5a020 0%,#c5f055 100%);
+  border:none; 
+  border-radius:200px; 
+  padding:.55em 1.9em; 
+  cursor:pointer;
+  transition:transform .15s,background .3s,color .3s;
+  margin-top: 5%;
+}
+
+.choose-btn.ready:hover { 
+  background:#fff; 
+  color:#12151B; 
+  }
+
+  
+.choose-btn.ready { opacity: 1; pointer-events: all; }
+  
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+
+
+</style>
+</head>
+<body>
+
+<!-- CHOOSE CHARACTER -->
+<section id="screen-choose" class="screen active">
+  <h1 class="section-title float-text">Choose Your Character</h1>
+  <p class="section-sub">Pick the SYDE student whose journey you want to follow</p>
+
+  <div class="carousel-wrapper">
+    <div class="carousel-track-outer">
+      <div class="carousel-track" id="carouselTrack"></div>
+    </div>
+    <div class="carousel-controls">
+      <button class="carousel-btn" id="prevBtn">&#8592;</button>
+      <div class="carousel-dots" id="carouselDots"></div>
+      <button class="carousel-btn" id="nextBtn">&#8594;</button>
+    </div>
+  </div>
+
+  <canvas id="bgCanvas"></canvas>
+
+  <button class="choose-btn" id="chooseBtn">Start Adventure</button>
+</section>
+
+
+
+<script>
+const characters = [
+  { img: "images/Ian.png", name: "Ian", bio: "One of the developers of this website!" },
+  { img: "images/Nandika.png", name: "Nandika", bio: "Helped to develop this website" },
+  { img: "images/Tonia.png", name: "Tonia", bio: "Helped to develop this website" },
+  { img: "images/Rachael.png", name: "Rachael", bio: "Helped to develop this website" },
+  { img: "images/Luna.png", name: "Luna", bio: "Helped to develop this website" },
+  { img: "images/Nikki.png", name: "Nikki", bio: "Helped to develop this website" },
+  { img: "images/Marwa.png", name: "Marwa", bio: "Helped to develop this website" },
+  { img: "images/Sara.png", name: "Sara", bio: "Helped to develop this website" },
+  { img: "images/Joy.png", name: "Joy", bio: "Helped to develop this website" },
+  { img: "images/Seohee.png", name: "Seohee", bio: "Helped to develop this website" },
+];
+
+
+const track = document.getElementById('carouselTrack');
+
+let scrollX = 0;
+let autoScroll;
+let selectedChar = null;
+
+const speed = 0.5;
+const cardW = 260;
+
+
+function buildCarousel() {
+  track.innerHTML = '';
+
+  const all = [...characters, ...characters]; // duplicate once
+
+  all.forEach((c, i) => {
+    const realIndex = i % characters.length;
+
+    const card = document.createElement('div');
+    card.className = 'char-card';
+
+    if (selectedChar === realIndex) {
+      card.classList.add('selected');
+    }
+
+    card.innerHTML = `
+    <div class="char-avatar">
+      <img src="${c.img}" alt="${c.name}">
+    </div>
+      <div class="char-name">${c.name}</div>
+      <div class="char-bio">${c.bio}</div>
+      <div class="char-select-badge">SELECTED</div>
+    `;
+
+    card.onclick = () => {
+      selectedChar = realIndex;
+      updateSelection();
+      updateChooseBtn();
+    };
+
+    track.appendChild(card);
+  });
+}
+
+// Update selection highlight
+function updateSelection() {
+  const cards = track.querySelectorAll('.char-card');
+
+  cards.forEach((card, i) => {
+    const realIndex = i % characters.length;
+
+    card.classList.toggle('selected', realIndex === selectedChar);
+  });
+}
+
+// Movement
+function moveCarousel() {
+  scrollX += speed;
+
+  const totalWidth = cardW * characters.length;
+
+  if (scrollX >= totalWidth) {
+    scrollX = 0;
+  }
+
+  track.style.transform = `translateX(-${scrollX}px)`;
+}
+
+// Auto scroll
+function startAutoScroll() {
+  autoScroll = setInterval(moveCarousel, 16);
+}
+
+// Stop
+function stopAutoScroll() {
+  clearInterval(autoScroll);
+}
+
+// BUTTONS
+document.getElementById('nextBtn').onclick = () => {
+  stopAutoScroll();
+  scrollX += cardW;
+  moveCarousel();
+};
+
+document.getElementById('prevBtn').onclick = () => {
+  stopAutoScroll();
+  scrollX -= cardW;
+
+  if (scrollX < 0) {
+    scrollX = cardW * (characters.length - 1);
+  }
+
+  moveCarousel();
+};
+
+// Hover pause
+track.addEventListener('mouseenter', stopAutoScroll);
+track.addEventListener('mouseleave', startAutoScroll);
+
+
+function updateChooseBtn() {
+  document.getElementById('chooseBtn')
+    .classList.toggle('ready', selectedChar !== null);
+}
+
+
+buildCarousel();
+startAutoScroll();
+
+//button link to 
+chooseBtn.onclick = () => {
+  if (selectedChar !== null) {
+    window.location.href = `adventure.html?char=${selectedChar}`;
+  }
+};
+
+//stars in bg
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+
+  // glow background
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+
+  glow.forEach((g, i) => {
+    bg.addColorStop(g.stop, g.color(a));
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.restore();
+
+  // star layers
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80;
+    const sh = sH * t;
+    const sv = sV * t;
+
+    const [r, g, b] = colorFn(t);
+
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+
+    const wx = sh * 0.08;
+    const wy = sv * 0.08;
+
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+const greenStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    58 + (180 - 58) * t,
+    79 + (240 - 79) * t,
+    212 + (50 - 212) * t
+  ]
+};
+const purpleStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(120,40,200,${a * 0.3})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    80 + (130 - 80) * t,
+    30 + (60 - 30) * t,
+    255
+  ]
+};
+const pinkStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(200,60,130,${a * 0.28})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    255,
+    60 + (150 - 60) * t,
+    180 + (80 - 180) * t
+  ]
+};
+
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth;
+  const H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+
+  ctx.clearRect(0, 0, W, H);
+
+  const sH = Math.min(W, H) * 0.3;
+  const sV = Math.min(W, H) * 0.36;
+
+  ctx.filter = 'blur(14px)';
+
+  drawStar(ctx, W * 0.1, H * 0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W * 0.88, H * 0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.85, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
+
+  ctx.filter = 'none';
+}
+
+window.addEventListener('load',()=>{renderBg();drawCoop();drawGender();});
+window.addEventListener('resize',()=>{renderBg();drawCoop();drawGender();});
+
+</script>
+</body>
+</html>

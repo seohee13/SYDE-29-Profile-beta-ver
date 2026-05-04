@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    background:#12151b;
+    font-family:'Inter',sans-serif;
+    color:#eaebed;
+}
+#bgCanvas{
+    position:fixed;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.6;
+}
+.hero{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    padding:6rem 1.5rem 1rem;
+}
+.hero h1{
+    font-size:2.8rem;
+    font-weight:900;
+    color:#eaebed;
+    letter-spacing:-1px;
+}
+.hero p{
+    font-size:0.85rem;
+    color:#aaa;
+    margin-top:0.4rem;
+}
+.content{
+    position:relative;
+    z-index:1;
+    padding:0 2rem 5rem;
+    max-width:1100px;
+    margin:0 auto;
+}
+.section-title{
+    font-size:1.2rem;
+    font-weight:900;
+    color:#eaebed;
+    margin:2rem 0 0.75rem;
+    line-height:1.3;
+}
+
+.hl-pink{color:#ff86f6;}
+.hl-blue{color:#2f53f9;}
+.hl-green{color:#c5ff79;}
+.hl-orange{color:#ff6e23;}
+
+.card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    margin-bottom:1rem;
+}
+.card-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+    margin-bottom:0;
+}
+@media(max-width:700px){.card-row{grid-template-columns:1fr;}}
+.chart-wrap{
+    position:relative;
+    height:260px;
+}
+.chart-wrap-tall{
+    position:relative;
+    height:320px;
+}
+.stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+    margin-bottom:1rem;
+}
+
+@media(max-width:700px){.stat-grid{grid-template-columns:1fr 1fr;}}
+
+.stat-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    text-align:center;
+}
+.stat-num{
+    font-size:2rem;
+    font-weight:900;
+    margin-bottom:0.25rem;
+}
+.stat-label{
+    font-size:0.72rem;
+    color:#aaa;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+.quote-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+}
+@media(max-width:700px){.quote-grid{grid-template-columns:1fr;}}
+.quote-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.1rem 1.25rem;
+    border-left:3px solid #c5ff79;
+}
+.quote-card p{
+    font-size:0.82rem;
+    color:#ccc;
+    line-height:1.6;
+    font-style:italic;
+}
+.next-btn {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background: linear-gradient(90deg, #f5a020 0%, #c5f055 100%);
+  color: #1a0800;
+  border: none;
+  border-radius: 200px;
+  padding: .55em 1.9em;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+  font-weight: 1000;
+  font-size: clamp(20px, 1.5vw, 21px);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 999;
+}
+
+.next-btn-wrap { 
+  position:absolute; 
+  bottom:10%; 
+  right:12%; 
+}
+
+.next-btn:hover {
+  background: #ffffff;
+  color: #12151B;
+}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="hero">
+  <h1>Co-op</h1>
+  <p>real world, real money — syde '29</p>
+</div>
+
+<div class="content">
+
+  <!-- Key stats -->
+  <div class="section-title">Top <span class="hl-green">numbers</span></div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" style="color:#c5ff79;">$21.20</div>
+      <div class="stat-label">Avg 1st co-op pay</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#ff86f6;">$25.80</div>
+      <div class="stat-label">Avg 2nd co-op pay</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#2f53f9;">+$4.60</div>
+      <div class="stat-label">Avg pay raise</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#ff6e23;">70%</div>
+      <div class="stat-label">Preferred 2nd term</div>
+    </div>
+  </div>
+
+  <!-- Term preference -->
+  <div class="section-title">Which co-op term did they <span class="hl-blue">enjoy more</span>?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="termPrefChart"></canvas></div></div>
+
+  <!-- ROW: Industry 1st + Industry 2nd -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">What <span class="hl-green">industry</span> was their 1st co-op?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="industry1Chart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">What <span class="hl-blue">industry</span> was their 2nd co-op?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="industry2Chart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Company size 1st + Company size 2nd -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">What type of <span class="hl-pink">company</span> was their 1st co-op?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="company1Chart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">What type of <span class="hl-orange">company</span> was their 2nd co-op?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="company2Chart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: How found 1st + How found 2nd -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">How did they find their <span class="hl-green">1st co-op</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="cycle1Chart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">How did they find their <span class="hl-blue">2nd co-op</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="cycle2Chart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Location 1st + Location 2nd -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Where was their <span class="hl-pink">1st co-op</span> located?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="loc1Chart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Where was their <span class="hl-orange">2nd co-op</span> located?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="loc2Chart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- Pay distribution -->
+  <div class="section-title">How did <span class="hl-green">pay</span> change from 1st to 2nd co-op?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="payCompareChart"></canvas></div></div>
+
+  <!-- Weird interview questions -->
+  <div class="section-title">Weirdest <span class="hl-pink">interview questions</span> SYDE 29 was asked</div>
+  <div class="quote-grid">
+    <div class="quote-card"><p>"Is a hotdog a sandwich?"</p></div>
+    <div class="quote-card"><p>"If your hardware was on the moon and you had to debug it, what would you do?"</p></div>
+    <div class="quote-card"><p>"How would you design a fleet of drones to eradicate untoward seagull attacks?"</p></div>
+    <div class="quote-card"><p>"If you were a kitchen appliance, what would you be?"</p></div>
+    <div class="quote-card"><p>"They gave me 30 seconds to point out a mistake in my resume, told me I got it wrong, then still gave me the job LOL"</p></div>
+    <div class="quote-card"><p>"What is SYDE?"</p></div>
+    <div class="quote-card"><p>"How would you fix a broken kettle?"</p></div>
+    <div class="quote-card"><p>"Think of your favourite park. How would you count all the leaves in that park?"</p></div>
+    <div class="quote-card"><p>"What's your favourite kind of bread?"</p></div>
+    <div class="quote-card"><p>"To say 'fuck'." — (the question was just that)</p></div>
+  </div>
+
+  </div>
+</div>
+
+</div>
+ <div class="next-btn-wrap">
+    <button class="next-btn" id="nextbtn">Next</button>
+  </div>
+</div>
+
+<script>
+const COLORS = {
+  blue:'#2f53f9', green:'#c5ff79', pink:'#ff86f6', orange:'#ff6e23',
+  teal:'#00c9b1', yellow:'#ffd166', red:'#ef476f', purple:'#9b5de5',
+  sky:'#00b4d8', lime:'#a8e063'
+};
+const palette = Object.values(COLORS);
+
+Chart.defaults.color = '#aaa';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = 'Inter';
+
+function makeChart(id, type, labels, data, colors, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const bg = Array.isArray(colors) ? colors : labels.map((_,i) => palette[i % palette.length]);
+  new Chart(ctx, {
+    type,
+    data:{
+      labels,
+      datasets:[{
+        data,
+        backgroundColor: type==='bar' ? bg.map(c=>c+'cc') : bg,
+        borderColor:      type==='bar' ? bg : '#1c1f28',
+        borderWidth:      type==='bar' ? 0 : 2,
+        borderRadius:     type==='bar' ? 6 : 0,
+        hoverOffset:      type!=='bar' ? 8 : 0,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          position: type==='bar'?'none':'right',
+          labels:{color:'#ccc',font:{size:11},boxWidth:12,padding:10}
+        },
+        tooltip:{
+          callbacks:{
+            label: ctx => {
+              const total=ctx.dataset.data.reduce((a,b)=>a+b,0);
+              return ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/total*100)}%)`;
+            }
+          }
+        }
+      },
+      scales: type==='bar' ? {
+        x:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}
+      } : {},
+      ...opts
+    }
+  });
+}
+
+// Term preference
+makeChart('termPrefChart','doughnut',
+  ['2nd term','1st term','Enjoyed both equally','Disliked both equally'],
+  [39,5,3,9],
+  [COLORS.blue, COLORS.green, COLORS.teal, COLORS.red]
+);
+
+// Industry 1st co-op
+makeChart('industry1Chart','bar',
+  ['Software','UX/UI','Mechanical','Research','Banking','Marketing','Electrical','Manufacturing','Healthcare','Airlines','Communications','Electrical','Rail Systems','QA','Data','Education' ],
+  [18,9,8,4,3,2,1,1,1,1,1,1,1,1,1],
+  palette,
+  {indexAxis:'y'}
+);
+
+// Industry 2nd co-op
+makeChart('industry2Chart','bar',
+  ['Software','Mechanical','UX/UI','Banking','Research','Electrical','Manufacturing','Healthcare','IT', 'Packaged Goods', 'HVAC', 'Entertainment', 'Mobility','Education'],
+  [34,5,3,2,2,2,1,1,1,1,1,1,1,1],
+  palette,
+  {indexAxis:'y'}
+);
+
+// Company size 1st
+makeChart('company1Chart','doughnut',
+  ['Large enterprise','Small/Medium enterprise','Start-up'],
+  [13,23,17],
+  [COLORS.blue, COLORS.teal, COLORS.pink]
+);
+
+// Company size 2nd
+makeChart('company2Chart','doughnut',
+  ['Large enterprise','Small/Medium enterprise','Start-up'],
+  [26,13,16],
+  [COLORS.blue, COLORS.teal, COLORS.pink]
+);
+
+// How found 1st
+makeChart('cycle1Chart','doughnut',
+  ['Found externally','Continuous','1st Cycle','2nd Cycle'],
+  [22,17,8,8],
+  [COLORS.orange, COLORS.green, COLORS.blue, COLORS.purple]
+);
+
+// How found 2nd
+makeChart('cycle2Chart','doughnut',
+  ['1st Cycle','Continuous','Found externally','2nd Cycle'],
+  [23,16,9,8],
+  [COLORS.blue, COLORS.green, COLORS.orange, COLORS.purple]
+);
+
+// Location 1st
+makeChart('loc1Chart','bar',
+  ['Toronto/GTA','Waterloo','Remote','Mississauga','Markham','Cambridge','Other international','Other'],
+  [12,12,11,6,2,2,1,7],
+  palette
+);
+
+// Location 2nd
+makeChart('loc2Chart','bar',
+  ['Toronto/GTA','Remote','Waterloo','Mississauga','Other international','Other'],
+  [25,8,5,2,2,3,5],
+  palette
+);
+
+// Pay comparison 1st vs 2nd (grouped bar)
+const payCtx = document.getElementById('payCompareChart');
+new Chart(payCtx, {
+  type: 'bar',
+  data: {
+    labels: ['<$18','$18-$20','$20-$22','$22-$25','$25-$30','$30-$40','$40+'],
+    datasets: [
+      {
+        label: '1st Co-op',
+        data: [8, 7, 20, 10, 3, 0, 0],
+        backgroundColor: COLORS.blue + 'cc',
+        borderRadius: 6,
+        borderWidth: 0,
+      },
+      {
+        label: '2nd Co-op',
+        data: [0, 7, 6, 13, 16, 1, 2],
+        backgroundColor: COLORS.green + 'cc',
+        borderRadius: 6,
+        borderWidth: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#ccc', font: { size: 11 }, boxWidth: 12 } },
+      tooltip: {}
+    },
+    scales: {
+      x: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'} },
+      y: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, beginAtZero:true }
+    }
+  }
+});
+
+//star bg
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+
+  // glow background
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+
+  glow.forEach((g, i) => {
+    bg.addColorStop(g.stop, g.color(a));
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.restore();
+
+  // star layers
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80;
+    const sh = sH * t;
+    const sv = sV * t;
+
+    const [r, g, b] = colorFn(t);
+
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+
+    const wx = sh * 0.08;
+    const wy = sv * 0.08;
+
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+const greenStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    8 + (18 - 8) * t,
+    79 + (320 - 9) * t,
+    112 + (50 - 212) * t
+  ]
+};
+const purpleStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    80 + (130 - 80) * t,
+    20 + (160 - 30) * t,
+    112 + (50 - 12) * t
+  ]
+};
+const pinkStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(200,60,130,${a * 0.28})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    255,
+    60 + (150 - 60) * t,
+    180 + (80 - 180) * t
+  ]
+};
+
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth;
+  const H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+
+  ctx.clearRect(0, 0, W, H);
+
+  const sH = Math.min(W, H) * 0.3;
+  const sV = Math.min(W, H) * 0.36;
+
+  ctx.filter = 'blur(14px)';
+
+  drawStar(ctx, W * 0.85, H * 0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W * 0.1, H * 0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.1, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
+
+  ctx.filter = 'none';
+}
+
+window.addEventListener('load',()=>{renderBg();drawCoop();drawGender();});
+window.addEventListener('resize',()=>{renderBg();drawCoop();drawGender();});
+
+
+nextbtn.onclick = () => {
+  window.location.href = "adventure.html"; // or whatever your next page is
+};
+</script>
+</body>
+</html>

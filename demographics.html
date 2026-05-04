@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    background:#12151b;
+    font-family:'Inter',sans-serif;
+    color:#eaebed;
+}
+#bgCanvas{
+    position:fixed;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.6;
+}
+.hero{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    padding:6rem 1.5rem 1rem;
+}
+.hero h1{
+    font-size:2.8rem;
+    font-weight:900;
+    color:#eaebed;
+    letter-spacing:-1px;
+}
+.hero p{
+    font-size:0.85rem;
+    color:#aaa;
+    margin-top:0.4rem;
+}
+.content{
+    position:relative;
+    z-index:1;
+    padding:0 2rem 5rem;
+    max-width:1100px;
+    margin:0 auto;
+}
+.section-title{
+    font-size:1.2rem;
+    font-weight:900;
+    color:#eaebed;
+    margin:2rem 0 0.75rem;
+    line-height:1.3;
+}
+
+.hl-pink{color:#ff86f6;}
+.hl-blue{color:#2f53f9;}
+.hl-green{color:#c5ff79;}
+.hl-orange{color:#ff6e23;}
+
+.card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    margin-bottom:1rem;
+}
+.card-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+    margin-bottom:0;
+}
+@media(max-width:700px){.card-row{grid-template-columns:1fr;}}
+.chart-wrap{
+    position:relative;
+    height:260px;
+}
+.chart-wrap-tall{
+    position:relative;
+    height:320px;
+}
+.stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+    margin-bottom:1rem;
+}
+
+@media(max-width:700px){.stat-grid{grid-template-columns:1fr 1fr;}}
+
+.stat-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    text-align:center;
+}
+.stat-num{
+    font-size:2rem;
+    font-weight:900;
+    margin-bottom:0.25rem;
+}
+.stat-label{
+    font-size:0.72rem;
+    color:#aaa;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+.quote-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+}
+@media(max-width:700px){.quote-grid{grid-template-columns:1fr;}}
+.quote-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.1rem 1.25rem;
+    border-left:3px solid #c5ff79;
+}
+.quote-card p{
+    font-size:0.82rem;
+    color:#ccc;
+    line-height:1.6;
+    font-style:italic;
+}
+.next-btn {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background: linear-gradient(90deg, #f5a020 0%, #c5f055 100%);
+  color: #1a0800;
+  border: none;
+  border-radius: 200px;
+  padding: .55em 1.9em;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+  font-weight: 1000;
+  font-size: clamp(20px, 1.5vw, 21px);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 999;
+}
+.next-btn-wrap { 
+  position:absolute; 
+  bottom:10%; 
+  right:12%; 
+}
+.next-btn:hover {
+  background: #ffffff;
+  color: #12151B;
+}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="hero">
+  <h1>Demographics</h1>
+  <p>insight into those who make up syde '29</p>
+</div>
+
+<div class="content">
+
+  <!-- ROW 1: Gender + Sexuality -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">What <span class="hl-blue"> gender</span> do they identify with?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="genderChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">What <span class="hl-green">sexuality</span> do they identify with?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="sexualityChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Ethnicity (full width, lots of categories) -->
+  <div class="section-title">What <span class="hl-orange">ethnicities</span> make up SYDE 29?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="ethnicityChart"></canvas></div></div>
+
+  <!-- ROW 3: Languages + Religion -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">What second-language do they <span class="hl-pink">speak</span>?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="languageChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">What <span class="hl-pink">religion</span> do they follow?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="religionChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Birth year + Horoscope -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">What year were they <span class="hl-blue">born</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="birthyearChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">What <span class="hl-green">horoscope</span> are they?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="horoscopeChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 5: Hometown + Born where -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Where did they <span class="hl-orange">grow up</span>?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="hometownChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Where were they <span class="hl-blue">born</span>?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="bornChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 6: Parent identity (full width) -->
+  <div class="section-title">Who are their <span class="hl-pink">parents</span> ?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="parentIdentityChart"></canvas></div></div>
+
+  <!-- ROW 7: Parent education + STEM -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Highest level of <span class="hl-green">education</span> attained by their parents?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="educationChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Are their parents in <span class="hl-orange">STEM</span>?</div>
+      <div class="card"><div class="chart-wrap-tall"><canvas id="stemChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 8: Income (full width) -->
+  <div class="section-title">How much do their <span class="hl-blue">households</span> make?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="incomeChart"></canvas></div></div>
+
+</div>
+ <div class="next-btn-wrap">
+    <button class="next-btn" id="nextbtn">Next</button>
+  </div>
+</div>
+
+<script>
+// ── Parsed data from survey ──────────────────────────────────────────
+const COLORS = {
+  blue:   '#2f53f9',
+  green:  '#c5ff79',
+  pink:   '#ff86f6',
+  orange: '#ff6e23',
+  teal:   '#00c9b1',
+  yellow: '#ffd166',
+  red:    '#ef476f',
+  purple: '#9b5de5',
+  sky:    '#00b4d8',
+  lime:   '#a8e063',
+};
+
+const palette = Object.values(COLORS);
+
+Chart.defaults.color = '#aaa';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = 'Inter';
+
+function makeChart(id, type, labels, data, color, opts = {}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const colors = Array.isArray(color) ? color : labels.map((_, i) => palette[i % palette.length]);
+  new Chart(ctx, {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: type === 'bar' ? colors.map(c => c + 'cc') : colors,
+        borderColor:      type === 'bar' ? colors : '#1c1f28',
+        borderWidth:      type === 'bar' ? 0 : 2,
+        borderRadius:     type === 'bar' ? 6 : 0,
+        hoverOffset:      type !== 'bar' ? 8 : 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: type === 'bar' ? 'none' : 'right',
+          labels: { color: '#ccc', font: { size: 11 }, boxWidth: 12, padding: 10 }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw / ctx.dataset.data.reduce((a,b)=>a+b,0)*100)}%)`
+          }
+        }
+      },
+      scales: type === 'bar' ? {
+        x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+      } : {},
+      ...opts
+    }
+  });
+}
+
+// Gender
+makeChart('genderChart', 'doughnut',
+  ['Female', 'Male'],
+  [35, 22],
+  [COLORS.pink, COLORS.blue]
+);
+
+// Sexuality
+makeChart('sexualityChart', 'doughnut',
+  ['Heterosexual', 'Bisexual', 'Homosexual', 'Asexual', 'Questioning'],
+  [43, 4, 5, 1, 1],
+  [COLORS.blue, COLORS.pink, COLORS.purple, COLORS.teal, COLORS.yellow, '#555']
+);
+
+// Ethnicity
+makeChart('ethnicityChart', 'bar',
+  ['East Asian', 'South Asian', 'White/Caucasian', 'Southeast Asian', 'Middle Eastern'],
+  [31, 18, 8, 5, 1],
+  palette
+);
+
+// Languages (top spoken)
+makeChart('languageChart', 'bar',
+  ['Mandarin', 'French', 'Hindi', 'Gujarati', 'None', 'Cantonese', 'Korean', 'Russian', 'Tagalog', 'Punjabi', 'Kannada', 'Bengali', 'Japanese', 'Serbian', 'Telugu', 'Urdu', 'Vietnamese'],
+  [19, 12, 9, 4, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1],
+  palette,
+  { indexAxis: 'y' }
+);
+
+// Religion
+makeChart('religionChart', 'doughnut',
+  ['None/Atheist/Agnostic', 'Hinduism', 'Christian', 'Muslim', 'Sikh'],
+  [17, 9, 6, 2, 1],
+  [COLORS.teal, COLORS.orange, COLORS.blue, COLORS.green, COLORS.yellow, '#555']
+);
+
+// Birth year
+makeChart('birthyearChart', 'bar',
+  ['2006', '2005'],
+  [52, 4],
+  [COLORS.blue, COLORS.green, COLORS.orange]
+);
+
+// Horoscope
+makeChart('horoscopeChart', 'bar',
+  ['Capricorn','Pisces', 'Taurus', 'Gemini', 'Aries','Leo','Libra','Aquarius','Scorpio','Sagittarius','Cancer','Virgo'],
+  [8, 8, 6, 5, 4, 4, 4, 4, 2, 2, 2, 2],
+  palette
+);
+
+// Hometown (top cities)
+makeChart('hometownChart', 'bar',
+  [,'Toronto/GTA', 'Mississauga','Brampton','Markham','Waterloo','Vancouver','Calgary','Burlington','Other'],
+  [10, 6, 6, 5, 4, 4, 2, 2, 2, 19],
+  palette,
+  { indexAxis: 'y' }
+);
+
+// Born where (top)
+makeChart('bornChart', 'bar',
+  ['Toronto/GTA','Mississauga','Canada','China/HK','India','South Korea', 'Kitchener', 'Vancouver', 'Other'],
+  [19, 7, 5, 3, 3, 2, 2, 2, 11],
+  palette,
+  { indexAxis: 'y' }
+);
+
+// Parent identity
+makeChart('parentIdentityChart', 'bar',
+  ['Immigrants', '2nd Gen Immigrants', 'Canadian-born', 'International'],
+  [35, 17, 3, 2],
+  palette
+);
+
+// Parent education
+makeChart('educationChart', 'bar',
+  'Bachelor\'s,Master\'s,College Diploma,PhD,High School,Professional Degree'.split(','),
+  [25, 17, 6, 3, 3, 2],
+  palette,
+  { indexAxis: 'y' }
+);
+
+// STEM
+makeChart('stemChart', 'doughnut',
+  ['Yes', 'No'],
+  [34, 21],
+  [COLORS.green, COLORS.red]
+);
+
+// Income
+makeChart('incomeChart', 'bar',
+  ['<$50k','$50k-$100k','$100k-$150k','$150k-$200k','$200k-$250k','$250k-$300k','>$300k'],
+  [4, 3, 10, 9, 5, 9, 7],
+  palette
+);
+
+// ── Star background ──────────────────────────────────────────────────
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+  glow.forEach(g => bg.addColorStop(g.stop, g.color(a)));
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg; ctx.fill(); ctx.restore();
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80, sh = sH * t, sv = sV * t;
+    const [r, g, b] = colorFn(t);
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+    const wx = sh * 0.08, wy = sv * 0.08;
+    ctx.save(); ctx.globalAlpha = op; ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv); ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+}
+const purpleStar = {
+  glow: [{ stop: 0, color: a => `rgba(120,40,200,${a*0.3})` }, { stop: 1, color: () => `rgba(0,0,0,0)` }],
+  colorFn: t => [180+(130-80)*t, 10+(160-30)*t, 55]
+};
+const greenStar = {
+  glow: [{ stop: 0, color: a => `rgba(90,40,100,${a*0.28})` }, { stop: 1, color: () => `rgba(10,150,60,0)` }],
+  colorFn: t => [58+(180-58)*t, 179+(240-179)*t, 212+(150-212)*t]
+};
+const pinkStar = {
+  glow: [{ stop: 0, color: a => `rgba(200,60,130,${a*0.28})` }, { stop: 1, color: () => `rgba(0,0,0,0)` }],
+  colorFn: t => [85, 60+(50-60)*t, 10+(180-10)*t]
+};
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth, H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  const sH = Math.min(W, H) * 0.3, sV = Math.min(W, H) * 0.36;
+  ctx.filter = 'blur(14px)';
+  drawStar(ctx, W*0.8, H*0.01, sH, sV, 1, purpleStar);
+  drawStar(ctx, W*0.95, H*0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W*0.08,  H*0.85, sH*0.85, sV*0.85, 1, pinkStar);
+  ctx.filter = 'none';
+}
+window.addEventListener('load', renderBg);
+window.addEventListener('resize', renderBg);
+
+nextbtn.onclick = () => {
+  window.location.href = "highschool.html"; // or whatever your next page is
+};
+</script>
+</body>
+</html>

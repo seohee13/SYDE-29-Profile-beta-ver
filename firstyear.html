@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    background:#12151b;
+    font-family:'Inter',sans-serif;
+    color:#eaebed;
+}
+#bgCanvas{
+    position:fixed;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.6;
+}
+.hero{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    padding:6rem 1.5rem 1rem;
+}
+.hero h1{
+    font-size:2.8rem;
+    font-weight:900;
+    color:#eaebed;
+    letter-spacing:-1px;
+}
+.hero p{
+    font-size:0.85rem;
+    color:#aaa;
+    margin-top:0.4rem;
+}
+.content{
+    position:relative;
+    z-index:1;
+    padding:0 2rem 5rem;
+    max-width:1100px;
+    margin:0 auto;
+}
+.section-title{
+    font-size:1.2rem;
+    font-weight:900;
+    color:#eaebed;
+    margin:2rem 0 0.75rem;
+    line-height:1.3;
+}
+
+.hl-pink{color:#ff86f6;}
+.hl-blue{color:#2f53f9;}
+.hl-green{color:#c5ff79;}
+.hl-orange{color:#ff6e23;}
+
+.card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    margin-bottom:1rem;
+}
+.card-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+    margin-bottom:0;
+}
+@media(max-width:700px){.card-row{grid-template-columns:1fr;}}
+.chart-wrap{
+    position:relative;
+    height:260px;
+}
+.chart-wrap-tall{
+    position:relative;
+    height:320px;
+}
+.stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+    margin-bottom:1rem;
+}
+
+@media(max-width:700px){.stat-grid{grid-template-columns:1fr 1fr;}}
+
+.stat-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    text-align:center;
+}
+.stat-num{
+    font-size:2rem;
+    font-weight:900;
+    margin-bottom:0.25rem;
+}
+.stat-label{
+    font-size:0.72rem;
+    color:#aaa;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+.quote-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+}
+@media(max-width:700px){.quote-grid{grid-template-columns:1fr;}}
+.quote-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.1rem 1.25rem;
+    border-left:3px solid #c5ff79;
+}
+.quote-card p{
+    font-size:0.82rem;
+    color:#ccc;
+    line-height:1.6;
+    font-style:italic;
+}
+.next-btn {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background: linear-gradient(90deg, #f5a020 0%, #c5f055 100%);
+  color: #1a0800;
+  border: none;
+  border-radius: 200px;
+  padding: .55em 1.9em;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+  font-weight: 1000;
+  font-size: clamp(20px, 1.5vw, 21px);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 999;
+}
+
+.next-btn-wrap { 
+  position:absolute; 
+  bottom:10%; 
+  right:12%; 
+}
+
+.next-btn:hover {
+  background: #ffffff;
+  color: #12151B;
+}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="hero">
+  <h1>First Year</h1>
+  <p>welcome to the chaos — syde '29</p>
+</div>
+
+<div class="content">
+
+  <!-- Key stats -->
+  <div class="section-title">Top <span class="hl-green">numbers</span></div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" style="color:#c5ff79;">82.5</div>
+      <div class="stat-label">Avg 1A grade</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#ff86f6;">84.2</div>
+      <div class="stat-label">Avg 1B grade</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#2f53f9;">8</div>
+      <div class="stat-label"> Acts of sydecest committed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#ff6e23;">89%</div>
+      <div class="stat-label">No regrets</div>
+    </div>
+  </div>
+
+  <!-- ROW: Regret + Term preference -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Do they <span class="hl-orange">regret</span> going into SYDE?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="regretChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Which <span class="hl-blue">term</span> did they prefer?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="termChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Fav class 1A + Least fav 1A -->
+  <div class="card-row">
+    <div>
+      <div class="section-title"><span class="hl-green">Favourite</span> class in 1A?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="fav1aChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title"><span class="hl-orange">Least favourite</span> class in 1A?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="least1aChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Hardest 1A + Easiest 1A -->
+  <div class="card-row">
+    <div>
+      <div class="section-title"><span class="hl-pink">Hardest</span> class in 1A?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="hard1aChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title"><span class="hl-blue">Easiest</span> class in 1A?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="easy1aChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Fav class 1B + Least fav 1B -->
+  <div class="card-row">
+    <div>
+      <div class="section-title"><span class="hl-green">Favourite</span> class in 1B?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="fav1bChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title"><span class="hl-orange">Least favourite</span> class in 1B?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="least1bChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Hardest 1B + Easiest 1B -->
+  <div class="card-row">
+    <div>
+      <div class="section-title"><span class="hl-pink">Hardest</span> class in 1B?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="hard1bChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title"><span class="hl-blue">Easiest</span> class in 1B?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="easy1bChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!--  Lecture attendance  -->
+  
+    <div>
+      <div class="section-title">How often did they attend <span class="hl-green">lectures</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="lectureChart"></canvas></div></div>
+    </div>
+
+  <!-- ROW: Office hours + TA office hours -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">How often did they go to <span class="hl-blue">office hours</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="ohChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">How often did they go to <span class="hl-blue">TA office hours</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="taohChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Stress 1A + Stress 1B -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Stress levels during <span class="hl-pink">1A</span></div>
+      <div class="card"><div class="chart-wrap"><canvas id="stress1aChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Stress levels during <span class="hl-orange">1B</span></div>
+      <div class="card"><div class="chart-wrap"><canvas id="stress1bChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Where lived 1A + 1B -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Where did they live in <span class="hl-green">1A</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="live1aChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Where did they live in <span class="hl-blue">1B</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="live1bChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Sleep + Study hours -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">How many hours did they <span class="hl-pink">sleep</span> per night</div>
+      <div class="card"><div class="chart-wrap"><canvas id="sleepChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">How many hours did they <span class="hl-orange">study</span> per week</div>
+      <div class="card"><div class="chart-wrap"><canvas id="studyChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Exercise school + Exercise coop -->
+    <div>
+      <div class="section-title">How often did they exercise during <span class="hl-green">school</span> term?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="exerciseSchoolChart"></canvas></div></div>
+    </div>
+
+  <!-- ROW: Easy to make friends + All nighters -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Was it easy to make <span class="hl-pink">friends</span> in SYDE?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="friendsChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">How many <span class="hl-orange">all-nighters</span> were pulled?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="allnighterChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Alcohol + Drugs -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Did they drink <span class="hl-green">alcohol</span> during first year?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="alcoholChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Did they try <span class="hl-blue">recreational drugs</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="drugsChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: Relationship + Dating apps -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Were they in a <span class="hl-pink">relationship</span> during first year?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="relationshipChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Did any try using <span class="hl-orange">dating apps</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="datingChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW: fav prof + fav ta -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Who was their favourite <span class="hl-green">professor</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="profChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Who was their favourite <span class="hl-orange">TA</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="TAChart"></canvas></div></div>
+    </div>
+  </div>
+
+  
+  <!-- showers  -->
+  <div class="section-title">How<span class="hl-green"> clean </span>is SYDE 29?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="showerChart"></canvas></div></div>
+
+  <!-- Going home -->
+  <div class="section-title">How many times did they go<span class="hl-green"> home</span>?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="homeChart"></canvas></div></div>
+
+
+
+</div>
+
+</div>
+ <div class="next-btn-wrap">
+    <button class="next-btn" id="nextbtn">Next</button>
+  </div>
+
+<script>
+const COLORS = {
+  blue:'#2f53f9', green:'#c5ff79', pink:'#ff86f6', orange:'#ff6e23',
+  teal:'#00c9b1', yellow:'#ffd166', red:'#ef476f', purple:'#9b5de5',
+  sky:'#00b4d8', lime:'#a8e063'
+};
+const palette = Object.values(COLORS);
+
+Chart.defaults.color = '#aaa';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = 'Inter';
+
+function makeChart(id, type, labels, data, colors, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const bg = Array.isArray(colors) ? colors : labels.map((_,i) => palette[i % palette.length]);
+  new Chart(ctx, {
+    type,
+    data: {
+      labels,
+      datasets:[{
+        data,
+        backgroundColor: type==='bar' ? bg.map(c=>c+'cc') : bg,
+        borderColor:      type==='bar' ? bg : '#1c1f28',
+        borderWidth:      type==='bar' ? 0 : 2,
+        borderRadius:     type==='bar' ? 6 : 0,
+        hoverOffset:      type!=='bar' ? 8 : 0,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          position: type==='bar'?'none':'right',
+          labels:{color:'#ccc',font:{size:11},boxWidth:12,padding:10}
+        },
+        tooltip:{
+          callbacks:{
+            label: ctx => {
+              const total=ctx.dataset.data.reduce((a,b)=>a+b,0);
+              return ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/total*100)}%)`;
+            }
+          }
+        }
+      },
+      scales: type==='bar' ? {
+        x:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}
+      } : {},
+      ...opts
+    }
+  });
+}
+
+// Regret
+makeChart('regretChart','doughnut',
+  ['No','Sometimes','Yes'],
+  [48,3,3],
+  [COLORS.red, COLORS.yellow, COLORS.green]
+);
+
+// Term preference
+makeChart('termChart','doughnut',
+  ['1B','1A','Enjoyed both equally'],
+  [47,4,4],
+  [COLORS.blue, COLORS.pink, COLORS.teal]
+);
+
+// Fav class 1A
+makeChart('fav1aChart','bar',
+  ['SYDE 101L','SYDE 111','SYDE 121','SYDE 181','SYDE 161','SYDE 113','SYDE 101'],
+  [22,11,7,5,5,4,1],
+  palette
+);
+
+// Least fav 1A
+makeChart('least1aChart','bar',
+  ['SYDE 113','SYDE 161', 'SYDE 101','SYDE 101L','SYDE 121','SYDE 181','SYDE 111'],
+  [22,9,7,5,5,5,3],
+  palette
+);
+
+// Hardest 1A
+makeChart('hard1aChart','bar',
+  ['SYDE 113','SYDE 111','SYDE 101L','SYDE 161','SYDE 282', 'SYDE 121'],
+  [23,16,7,4,3,2],
+  palette
+);
+
+// Easiest 1A
+makeChart('easy1aChart','bar',
+  ['SYDE 101','SYDE 101L','SYDE 121','SYDE 161','SYDE 111','SYDE 181', 'SYDE 113'],
+  [33,8,6,3,3,2,1],
+  palette
+);
+
+// Fav class 1B
+makeChart('fav1bChart','bar',
+  ['SYDE 192','SYDE 192L','SYDE 223','SYDE 112','SYDE 162','SYDE 114','Elective'],
+  [17,15,8,5,4,4,3],
+  palette
+);
+
+// Least fav 1B
+makeChart('least1bChart','bar',
+  ['SYDE 162','SYDE 114','SYDE 223','SYDE 192L','SYDE 112','Elective', 'SYDE 192'],
+  [19,10,8,8,6,2,1],
+  palette
+);
+
+// Hardest 1B
+makeChart('hard1bChart','bar',
+  ['SYDE 112','SYDE 223','SYDE 192L','SYDE 162','Elective'],
+  [36,9,5,5,1],
+  palette
+);
+
+// Easiest 1B
+makeChart('easy1bChart','bar',
+  ['SYDE 114', 'SYDE 192','Elective','SYDE 192L','SYDE 223', 'SYDE 112'],
+  [18,16,14,4,3,1],
+  palette
+);
+
+// Lecture attendance
+makeChart('lectureChart','doughnut',
+  ['100%','90%','80%','70%','60%','50%','40%','30%','20%','10%'],
+  [3,7,10,7,10,7,4,2,4,2],
+  palette
+);
+
+// Office hours
+makeChart('ohChart','doughnut',
+  ['Never','Whenever I had questions','Only exam/midterm season'],
+  [30,20,6],
+  [COLORS.red, COLORS.green, COLORS.yellow, COLORS.blue]
+);
+
+// TA Office hours
+makeChart('taohChart','doughnut',
+  ['Never','Whenever I had questions','Weekly','Only exam/midterm season'],
+  [29,18,6,3],
+  [COLORS.red, COLORS.green, COLORS.yellow, COLORS.blue]
+);
+
+
+// Stress 1A (1-5)
+makeChart('stress1aChart','bar',
+  ['1','2','3','4','5'],
+  [0,8,12,22,13],
+  [COLORS.teal, COLORS.green, COLORS.yellow, COLORS.orange, COLORS.red]
+);
+
+// Stress 1B (1-5)
+makeChart('stress1bChart','bar',
+  ['1','2','3','4','5'],
+  [3,21,22,8,2],
+  [COLORS.teal, COLORS.green, COLORS.yellow, COLORS.orange, COLORS.red]
+);
+
+// Where lived 1A
+makeChart('live1aChart','doughnut',
+  ['UWP','CMH','Off Campus','Home','REV','University Colleges'],
+  [23,22,4,3,2,2],
+  palette
+);
+
+// Where lived 1B
+makeChart('live1bChart','doughnut',
+  ['CMH', 'UWP','Off Campus','University Colleges','Home'],
+  [25,21,6,3,2],
+  palette
+);
+
+// Sleep
+makeChart('sleepChart','bar',
+  ['5h','6h','6.5h','7h','7.5h','8h','8.5h','9h','10h'],
+  [5,9,1,16,2,10,1,6,1],
+  palette
+);
+
+// Study hours/week
+makeChart('studyChart','bar',
+  ['1-5h','6-10h','11-15h','16-20h','21-25h','26-30h','31-40h','40h+'],
+  [6,6,9,4,8,7,7,3],
+  palette
+);
+
+// Exercise during school
+makeChart('exerciseSchoolChart','doughnut',
+  ['Never','Once a month','Once a week','A few times a week','Everyday'],
+  [2,5,20,25,4],
+  [COLORS.red, COLORS.orange, COLORS.yellow, COLORS.green, COLORS.teal]
+);
+
+// Easy to make friends (1-5)
+makeChart('friendsChart','bar',
+  ['2','3','4','5 — Very easy'],
+  [3,8,24,22],
+  [COLORS.red, COLORS.yellow, COLORS.teal, COLORS.green]
+);
+
+// All nighters
+makeChart('allnighterChart','doughnut',
+  ['None','1-2','3-5','5-10'],
+  [30,15,9,3],
+  [COLORS.red, COLORS.yellow, COLORS.orange, COLORS.green]
+);
+
+// Alcohol
+makeChart('alcoholChart','doughnut',
+  ['Yes','Yes, for the first time','No'],
+  [36,10,9],
+  [COLORS.green, COLORS.teal, COLORS.red]
+);
+
+// Drugs
+makeChart('drugsChart','doughnut',
+  ['No','Yes','Yes, for the first time'],
+  [38,10,8],
+  [COLORS.red, COLORS.green, COLORS.purple]
+);
+
+// Relationship
+makeChart('relationshipChart','doughnut',
+  ['No','Yes (during first year)','Yes (from before)','Multiple'],
+  [29,15,10,2],
+  [COLORS.red, COLORS.green, COLORS.pink, COLORS.purple]
+);
+
+// Dating apps
+makeChart('datingChart','doughnut',
+  ['No','Yes'],
+  [52,1],
+  [COLORS.red, COLORS.green]
+);
+
+// Fav prof
+makeChart('profChart','bar',
+  ['Sean Speziale','Charbel Azzi','Amy Tai','Robert Hunter','Victoria Kerr','Chris McClellan', 'I love them all <3'],
+  [20,10,8,3,3,1,1],
+  palette
+);
+
+// Fav TA
+makeChart('TAChart','bar',
+  ['Andre','Andrea','Tim','Harish','The ones for 192L'],
+  [20,9,6,3,1],
+  palette
+);
+
+// Going home
+makeChart('homeChart','bar',
+  ['0','1','2','3','4'],
+  [4,14,16,8,8],
+  palette
+);
+
+// showers
+makeChart('showerChart','doughnut',
+  ['3-5','5-10','10+'],
+  [19,33,3],
+  [COLORS.green, COLORS.pink, COLORS.purple]
+);
+
+//star bg
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+
+  // glow background
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+
+  glow.forEach((g, i) => {
+    bg.addColorStop(g.stop, g.color(a));
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.restore();
+
+  // star layers
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80;
+    const sh = sH * t;
+    const sv = sV * t;
+
+    const [r, g, b] = colorFn(t);
+
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+
+    const wx = sh * 0.08;
+    const wy = sv * 0.08;
+
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+const greenStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    58 + (18 - 8) * t,
+    79 + (20 - 9) * t,
+    212 + (50 - 12) * t
+  ]
+};
+const purpleStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(120,40,200,${a * 0.3})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    80 + (130 - 80) * t,
+    30 + (160 - 10) * t,
+    130 + (50 - 20) * t
+  ]
+};
+const pinkStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(200,60,130,${a * 0.28})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    255,
+    160 + (150 - 60) * t,
+    180 + (80 - 180) * t
+  ]
+};
+
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth;
+  const H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+
+  ctx.clearRect(0, 0, W, H);
+
+  const sH = Math.min(W, H) * 0.3;
+  const sV = Math.min(W, H) * 0.36;
+
+  ctx.filter = 'blur(14px)';
+
+  drawStar(ctx, W * 0.1, H * 0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W * 0.88, H * 0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.85, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
+
+  ctx.filter = 'none';
+}
+
+window.addEventListener('load', renderBg);
+window.addEventListener('resize', renderBg);
+
+document.getElementById('nextbtn').onclick = () => {
+  window.location.href = "coop.html"; // or whatever your next page is
+};
+</script>
+</body>
+</html>

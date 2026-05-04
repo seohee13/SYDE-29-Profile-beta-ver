@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    background:#12151b;
+    font-family:'Inter',sans-serif;
+    color:#eaebed;}
+
+#bgCanvas{
+    position:fixed;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.6;
+}
+
+.hero{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    padding:6rem 1.5rem 1rem;
+}
+
+.hero h1{
+    font-size:2.8rem;
+    font-weight:900;
+    color:#eaebed;
+    letter-spacing:-1px;
+}
+
+.hero p{
+    font-size:0.85rem;
+    color:#aaa;
+    margin-top:0.4rem;
+}
+
+.content{
+    position:relative;
+    z-index:1;
+    padding:0 2rem 5rem;
+    max-width:1100px;
+    margin:0 auto;
+}
+
+.section-title{
+    font-size:1.2rem;
+    font-weight:900;
+    color:#eaebed;
+    margin:2rem 0 0.75rem;
+    line-height:1.3;
+}
+
+.hl-pink{color:#ff86f6;}
+.hl-blue{color:#2f53f9;}
+.hl-green{color:#c5ff79;}
+.hl-orange{color:#ff6e23;}
+.card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    margin-bottom:1rem;
+}
+.card-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+    margin-bottom:0;
+}
+
+@media(max-width:700px){.card-row{grid-template-columns:1fr;}}
+
+.chart-wrap{
+    position:relative;
+    height:260px;
+}
+
+.chart-wrap-tall{
+    position:relative;
+    height:320px;
+}
+
+.stat-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1rem;
+    margin-bottom:0;
+}
+@media(max-width:600px){.stat-grid{grid-template-columns:1fr 1fr;}}
+
+.stat-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.25rem;
+    text-align:center;
+}
+.stat-num{
+    font-size:2rem;
+    font-weight:900;
+    margin-bottom:0.25rem;
+}
+
+.stat-label{
+    font-size:0.75rem;
+    color:#aaa;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.quote-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+}
+
+@media(max-width:700px){.quote-grid{grid-template-columns:1fr;}}
+
+.quote-card{
+    background:#1c1f28;
+    border-radius:14px;
+    padding:1.1rem 1.25rem;
+    border-left:3px solid #c5ff79;
+}
+
+.quote-card p{
+    font-size:0.82rem;
+    color:#ccc;
+    line-height:1.6;
+    font-style:italic;
+}
+
+.next-btn{
+position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+  font-weight: 1000;
+  font-size: clamp(20px, 1.5vw, 21px);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #1a0800;
+  background: linear-gradient(90deg, #f5a020 0%, #c5f055 100%);
+  border: none;
+  border-radius: 200px;
+  padding: .55em 1.9em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 999;
+}
+
+.next-btn-wrap { 
+  position:absolute; 
+  bottom:10%; 
+  right:12%; 
+}
+
+.next-btn:hover {
+  background: #ffffff;
+  color: #12151B;
+}
+
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="hero">
+  <h1>High School</h1>
+  <p>the grind before the grind — syde '29</p>
+</div>
+
+<div class="content">
+
+  <!-- Key stats -->
+  <div class="section-title">Top <span class="hl-green">numbers</span></div>
+  <div class="stat-grid" style="margin-bottom:1rem;">
+    <div class="stat-card">
+      <div class="stat-num" style="color:#c5ff79;">95.9%</div>
+      <div class="stat-label">Avg Top 6</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#ff86f6;">66%</div>
+      <div class="stat-label">Had a part-time job</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#2f53f9;">79%</div>
+      <div class="stat-label">SYDE was top choice</div>
+    </div>
+  </div>
+
+  <!-- ROW 1: Top 6 avg distribution + Specialized program -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">What was their <span class="hl-green">Top 6 averages</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="avgChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Were they in a <span class="hl-blue">specialized program</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="programChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Part time job + Hours worked -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Did they have a <span class="hl-orange">part-time job</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="jobChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">How many <span class="hl-pink">hours</span> did they work per week?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="hoursChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Was SYDE top choice + Acceptance round -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">Was SYDE their <span class="hl-green">top choice</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="topChoiceChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">When did they get <span class="hl-blue">accepted</span>?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="acceptanceChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 4: How heard about SYDE + Did HS prepare you -->
+  <div class="card-row">
+    <div>
+      <div class="section-title">How did they <span class="hl-orange">hear about</span> SYDE?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="heardChart"></canvas></div></div>
+    </div>
+    <div>
+      <div class="section-title">Did high school <span class="hl-pink">prepare</span> them for university?</div>
+      <div class="card"><div class="chart-wrap"><canvas id="prepChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- Other schools considered (full width) -->
+  <div class="section-title">What other <span class="hl-green">schools</span> were they considering?</div>
+  <div class="card"><div class="chart-wrap"><canvas id="schoolsChart"></canvas></div></div>
+
+  <!-- Advice section -->
+  <div class="section-title">Advice from <span class="hl-pink">SYDE '29</span> to future applicants</div>
+  <div class="quote-grid">
+    <div class="quote-card"><p>"Being authentic and genuine will get you far."</p></div>
+    <div class="quote-card"><p>"You start applying to jobs immediately after school starts, so have your resume ready."</p></div>
+    <div class="quote-card"><p>"Don't let imposter syndrome get to you."</p></div>
+    <div class="quote-card"><p>"Grades aren't everything in uni — invest your time in side projects."</p></div>
+    <div class="quote-card"><p>"Don't stress about not having everything figured out — that's exactly why you choose SYDE."</p></div>
+    <div class="quote-card"><p>"Use the opportunities you're given to explore, don't lock yourself into one path without trying everything."</p></div>
+    <div class="quote-card"><p>"Talk to as many people as you can during o-week!"</p></div>
+    <div class="quote-card"><p>"If you're new to coding, get coding!"</p></div>
+  </div>
+
+</div>
+
+</div>
+ <div class="next-btn-wrap">
+    <button class="next-btn" id="nextbtn">Next</button>
+  </div>
+</div>
+
+<script>
+const COLORS = {
+  blue:'#2f53f9', green:'#c5ff79', pink:'#ff86f6', orange:'#ff6e23',
+  teal:'#00c9b1', yellow:'#ffd166', red:'#ef476f', purple:'#9b5de5',
+  sky:'#00b4d8', lime:'#a8e063'
+};
+const palette = Object.values(COLORS);
+
+Chart.defaults.color = '#aaa';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = 'Inter';
+
+function makeChart(id, type, labels, data, colors, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const bg = Array.isArray(colors) ? colors : labels.map((_,i) => palette[i % palette.length]);
+  new Chart(ctx, {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: type==='bar' ? bg.map(c=>c+'cc') : bg,
+        borderColor:      type==='bar' ? bg : '#1c1f28',
+        borderWidth:      type==='bar' ? 0 : 2,
+        borderRadius:     type==='bar' ? 6 : 0,
+        hoverOffset:      type!=='bar' ? 8 : 0,
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          position: type==='bar' ? 'none' : 'right',
+          labels:{color:'#ccc', font:{size:11}, boxWidth:12, padding:10}
+        },
+        tooltip:{
+          callbacks:{
+            label: ctx => {
+              const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+              return ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/total*100)}%)`;
+            }
+          }
+        }
+      },
+      scales: type==='bar' ? {
+        x:{ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, beginAtZero:true}
+      } : {},
+      ...opts
+    }
+  });
+}
+
+// Top 6 average distribution (bucketed)
+makeChart('avgChart','bar',
+  ['90-92','93-94','95-96','97-98','99-100'],
+  [4, 12, 14, 16, 7],
+  palette
+);
+
+// Specialized program
+makeChart('programChart','doughnut',
+  ['AP','IB','SHSM','None','Arts','Gifted','Other'],
+  [19, 13, 10, 7, 5, 4, 9],
+  [COLORS.blue, COLORS.green, COLORS.orange, COLORS.pink, '#555', COLORS.teal, COLORS.yellow]
+);
+
+// Part time job
+makeChart('jobChart','doughnut',
+  ['Had a job','No job'],
+  [37, 19],
+  [COLORS.green, COLORS.red]
+);
+
+// Hours worked per week (among those who worked)
+makeChart('hoursChart','bar',
+  ['1-5h','6-10h','11-15h','16-20h','21-25h'],
+  [7, 11, 7, 7, 3],
+  palette
+);
+
+// SYDE top choice
+makeChart('topChoiceChart','doughnut',
+  ['Yes','No'],
+  [45, 12],
+  [COLORS.green, COLORS.red]
+);
+
+// Acceptance round
+makeChart('acceptanceChart','doughnut',
+  ['March (early)','April','May'],
+  [34, 10, 11],
+  [COLORS.blue, COLORS.teal, COLORS.pink]
+);
+
+// How heard about SYDE
+makeChart('heardChart','bar',
+  ['Friend','Family','Online/Website','Upper Year','Other'],
+  [15, 13, 12, 6, 4],
+  palette
+);
+
+// Did HS prepare you (1-5 scale)
+makeChart('prepChart','bar',
+  ['1 - Not at all','2','3','4','5 - Very well'],
+  [0, 5, 17, 27, 7],
+  [COLORS.red, COLORS.orange, COLORS.yellow, COLORS.green, COLORS.teal]
+);
+
+// Other schools considered
+makeChart('schoolsChart','bar',
+  ['UofT','McMaster','UBC','Western','Stanford/Oxford/MIT/Caltech','None','McGill','UofG','McMaster'],
+  [23, 10, 6, 6, 4, 2, 1, 1, 1],
+  palette
+);
+
+//star bg
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+
+  // glow background
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+
+  glow.forEach((g, i) => {
+    bg.addColorStop(g.stop, g.color(a));
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.restore();
+
+  // star layers
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80;
+    const sh = sH * t;
+    const sv = sV * t;
+
+    const [r, g, b] = colorFn(t);
+
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+
+    const wx = sh * 0.08;
+    const wy = sv * 0.08;
+
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+const greenStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    58 + (18 - 128) * t,
+    79 + (240 - 79) * t,
+    21 + (50 - 212) * t
+  ]
+};
+const purpleStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    80 + (10 - 80) * t,
+    130 + (60 - 30) * t,
+    255
+  ]
+};
+const pinkStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(200,60,130,${a * 0.28})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    255,
+    60 + (150 - 60) * t,
+    180 + (80 - 80) * t
+  ]
+};
+
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth;
+  const H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+
+  ctx.clearRect(0, 0, W, H);
+
+  const sH = Math.min(W, H) * 0.3;
+  const sV = Math.min(W, H) * 0.36;
+
+  ctx.filter = 'blur(14px)';
+
+  drawStar(ctx, W * 0.5, H * 0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W * 0.2, H * 0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.85, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
+
+  ctx.filter = 'none';
+}
+
+window.addEventListener('load',()=>{renderBg();drawCoop();drawGender();});
+window.addEventListener('resize',()=>{renderBg();drawCoop();drawGender();});
+
+nextbtn.onclick = () => {
+  window.location.href = "firstyear.html"; // or whatever your next page is
+};
+</script>
+</body>
+</html>

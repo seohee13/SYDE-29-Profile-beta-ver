@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@900&display=swap" rel="stylesheet"/>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.6; 
+  overflow: hidden;
+  display:block
+}
+
+body {
+  background: #0c0e15;
+  color: #EAEBED;
+  font-family: 'Barlow', sans-serif;
+  position: relative;
+  z-index: 0;
+}
+
+/* SCREEN */
+.screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 0;
+}
+
+/* HEADER */
+h1 {
+  font-size: clamp(28px, 5vw, 70px);
+  font-weight: 900;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+/* Position of  the labels */
+.path-map {
+  position: relative;
+  width: min(600px, 90vw);
+  height: 580px;
+  margin: 0 auto;;
+}
+
+.stage-1 { top: 30px;  left: 0; }
+.stage-2 { top: 160px; right: 0; }
+.stage-3 { top: 320px; left: 0; }
+.stage-4 { top: 460px; right: 0; }
+
+/* stages */
+.path-stage {
+  position: absolute;
+  width: clamp(200px, 22vw, 280px);
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+  background: rgba(12, 14, 21, 0.82);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+}
+
+.path-stage:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 25px rgba(197,255,121,0.3);
+}
+
+.stage-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #C5FF79;
+  font-weight: 700;
+}
+
+/* Icon */
+.stage-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px; /* smoother than 20% */
+  overflow: hidden;
+  flex-shrink: 0; /* 🔑 prevents squishing */
+  background: rgba(255,255,255,0.08);
+}
+
+.stage-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.stage-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #EAEBED;
+}
+
+.stage-desc {
+  font-size: 11px;
+  color: rgba(234, 235, 237, 0.5);
+  margin-top: 2px;
+}
+
+/* Current level */
+.current {
+  border-color: #C5FF79;
+  box-shadow: 0 0 30px rgba(197,255,121,0.5);
+}
+
+/* Button */
+.go-btn {
+  background: linear-gradient(90deg,#C5FF79,#2F53F9 100%);
+  color: #0c0e15;
+  position: relative;
+  font-family:'Barlow','Arial Black',sans-serif; 
+  font-weight:1000; 
+  font-size:clamp(20px,1.5vw,21px);
+  text-transform:uppercase; 
+  border-radius:200px; 
+  padding:.55em 1.9em; 
+  cursor:pointer;
+  transition:transform .15s,background .3s,color .3s;
+  margin-top: 40%;
+  border: none;
+  outline: none;
+  margin-bottom: 5%;
+}
+
+.current {
+  border-color: #C5FF79;
+  box-shadow: 0 0 30px rgba(197,255,121,0.7);
+  transform: scale(1.1);
+}
+
+.go-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+ .go-btn-wrap { 
+  position:absolute; 
+  bottom:10%; 
+  right:12%; 
+}
+
+.go-btn:not(:disabled):hover {
+  background: #fff;
+  color: #12151B;
+}
+  
+.choose-btn.ready { opacity: 1; pointer-events: all; }
+
+</style>
+</head>
+
+<body>
+<div id="bg">
+  <canvas id="bgCanvas"></canvas>
+</div>
+<section class="screen">
+
+<h1>Your Adventure</h1>
+
+<div class="path-map">
+
+
+  <!-- stages -->
+  <div class="path-stage stage-1 current">
+    <div class="stage-icon"></div>
+    <div>
+      <div class="stage-label">Level 1</div>
+      <div class="stage-name">Background</div>
+      <div class="stage-desc">Where it all began</div>
+    </div>
+  </div>
+
+  <div class="path-stage stage-2">
+    <div class="stage-icon"></div>
+    <div>
+      <div class="stage-label">Level 2</div>
+      <div class="stage-name">High School</div>
+      <div class="stage-desc">The grind</div>
+    </div>
+  </div>
+
+  <div class="path-stage stage-3">
+    <div class="stage-icon"></div>
+    <div>
+      <div class="stage-label">Level 3</div>
+      <div class="stage-name">First Year</div>
+      <div class="stage-desc">Incoming SYDE 29's</div>
+    </div>
+  </div>
+
+  <div class="path-stage stage-4">
+    <div class="stage-icon"></div>
+    <div>
+      <div class="stage-label">Level 4</div>
+      <div class="stage-name">Co-op</div>
+      <div class="stage-desc">Real world</div>
+    </div>
+  </div>
+  
+
+</div>
+
+<button class="go-btn" id="goBtn" onclick="goToStage()" disabled>Let's Go</button>
+
+</section>
+
+<script>
+  //Icons saved from previous selection
+  window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const character = params.get("char");
+
+  const icons = {
+    0: "images/Ian.png",
+    1: "images/Nandika.png",
+    2: "images/Tonia.png",
+    3: "images/Rachael.png",
+    4: "images/Luna.png",
+    5: "images/Nikki.png",
+    6: "images/Marwa.png",
+    7: "images/Sara.png",
+    8: "images/Joy.png",
+    9: "images/Seohee.png",
+  };
+
+  document.querySelectorAll(".stage-icon").forEach(icon => {
+    if (icons[character]) {
+      icon.innerHTML = `<img src="${icons[character]}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+    }
+  });
+});
+
+  let selectedStage = null;
+
+  const links = [
+  "demographics.html",
+  "highschool.html",
+  "firstyear.html",
+  "coop.html"
+];
+
+const goBtn = document.getElementById("goBtn");
+
+document.querySelectorAll(".path-stage").forEach((stage, i) => {
+  stage.addEventListener("click", () => {
+
+    document.querySelectorAll(".path-stage").forEach(s => s.classList.remove("current"));
+
+    stage.classList.add("current");
+    selectedStage = i;
+
+    goBtn.disabled = false;
+  });
+});
+
+function goToStage() {
+  if (selectedStage === null) {
+    alert("Pick a stage first!");
+    return;
+  }
+
+  window.location.href = links[selectedStage];
+}
+
+//stars 
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+
+  // glow background
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+
+  glow.forEach((g, i) => {
+    bg.addColorStop(g.stop, g.color(a));
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.restore();
+
+  //star layers
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80;
+    const sh = sH * t;
+    const sv = sV * t;
+
+    const [r, g, b] = colorFn(t);
+
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+
+    const wx = sh * 0.08;
+    const wy = sv * 0.08;
+
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+const purpleStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+
+  colorFn: t => [
+    105 + (10 - 8) * t,
+    7 + (20 - 29) * t,
+    112 + (150 - 22) * t
+  ]
+};
+const greenStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
+    { stop: 0.7, color: a => `rgba(20,80,35,${a * 0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+],
+
+  colorFn: t => [
+    18 + (20 - 80) * t,
+    80 + (160 - 30) * t,
+    12 + (240 - 22) * t
+  ]
+};
+const pinkStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(200,60,130,${a * 0.28})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+
+  colorFn: t => [
+    180 + (230 - 80) * t,
+    160 + (15 - 60) * t,
+    180 + (80 - 180) * t
+  ]
+};
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth;
+  const H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+
+  ctx.clearRect(0, 0, W, H);
+
+  const sH = Math.min(W, H) * 0.3;
+  const sV = Math.min(W, H) * 0.36;
+
+  ctx.filter = 'blur(14px)';
+
+  drawStar(ctx, W * 0.1, H * 0.5, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.88, H * 0.04, sH, sV, 1, greenStar);
+  drawStar(ctx, W * 0.85, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
+
+  ctx.filter = 'none';
+}
+
+window.addEventListener('load', renderBg);
+window.addEventListener('resize', renderBg);
+
+</script>
+
+</body>
+</html>
