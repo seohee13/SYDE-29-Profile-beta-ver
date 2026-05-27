@@ -1,435 +1,958 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@900&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Choose Your Character - SYDE29</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0c0e15;
+  color: #EAEBED;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+}
 
-  html, body { 
-  width: 100%; 
-  height: 100%; 
-  overflow: hidden; 
-  } 
-
-  #bgCanvas {
+#bgCanvas {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   z-index: 0;
   pointer-events: none;
-  }
-  body {
-    background: #121518;
-    color: #EAEBED;
-    font-family: 'Outfit', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-    background: #0c0e15; 
-    font-family: 'Barlow', 'Arial Black', sans-serif;
-  }
+  opacity: 0.55;
+}
 
-  h1 {
-  font-weight:900; 
-  font-size:clamp(28px,5.2vw,80px); 
-  color:#EAEBED; 
-  text-transform:uppercase; 
-  letter-spacing:.02em; 
-  padding-bottom:.13em; 
-  }
+/* PAGE LAYOUT */
+.page {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 360px 1fr 340px;
+  grid-template-rows: auto 1fr auto;
+  gap: 0;
+  height: 100vh;
+  padding: 28px 36px 28px 36px;
+}
 
-  .scene { 
-  position:relative; 
-  width:100vw; 
-  height:100vh; 
-  background:#0c0e15; 
-  overflow:hidden; 
-  }
-  .screen { 
-    display: none; 
-    min-height: 100vh; 
-    position: relative; 
-  }
-  .screen.active { 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-  }
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 18px;
+}
 
-  
-  /* ---- CHOOSE CHARACTER ---- */
-  #screen-choose { padding: 100px 32px 60px; }
-  .section-title {
-    text-align: center;
-    position: relative; z-index: 10;
-     font-weight:900; 
-    font-size:clamp(28px,5.2vw,80px); 
-    color:#EAEBED; 
-    text-transform:uppercase; 
-    letter-spacing:.02em; 
-    padding-bottom:.13em; 
-  }
-  .section-sub {
-    color: rgba(234,235,237,0.5);
-    text-align: center; margin-bottom: 48px;
-    position: relative; z-index: 10;
-    font-weight:10; 
-    font-size:clamp(14px,5.2vw,10px); 
-    text-transform:uppercase; 
-    letter-spacing:.02em; 
-    padding-bottom:.13em; 
-  }
+.crumbs {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.5);
+}
+.crumbs .sep { margin: 0 0.6em; color: rgba(234,235,237,0.25); }
+.crumbs .active { color: #C5FF79; }
 
-  .carousel-wrapper {
-    width: 100%; max-width: 960px;
-    position: relative; 
-    z-index: 10;
-  }
-  .carousel-track-outer {
-    overflow: hidden; 
-    width: 100%;
-  }
-  .carousel-track {
-    display: flex; 
-    gap: 20px;
-    transition: transform 0.45s cubic-bezier(0.25,0.8,0.25,1);
-  }
-  .char-card {
-    flex: 0 0 240px; min-height: 300px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 5px;
-    padding: 28px 22px 24px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;
-    text-align: center;
-    position: relative;
-    font-size:clamp(28px,5.2vw,80px); 
-    letter-spacing:.02em; 
-    padding-bottom:.13em; 
-  }
-  .char-card:hover { 
-    border-color: rgba(255,134,246,0.4); 
-    transform: translateY(-4px); 
-    background: rgba(255,255,255,0.07); 
-} 
-  .char-card.selected {
-    border-color: #FF86F6;
-    background: rgba(255,134,246,0.1);
-    box-shadow: 0 0 32px rgba(255,134,246,0.2);
-  }
-  .char-avatar {
-    width: 200px; height: 200px; border-radius: 5%;
-    margin-bottom: 16px;
-    font-size: 36px; display: flex; align-items: center; justify-content: center;
-    background: rgba(100, 69, 113, 0.774);
-    border: 2px solid rgba(255,255,255,0.1);
-    overflow: hidden;
-  }
+.page-title {
+  font-weight: 900;
+  font-size: clamp(20px, 1.8vw, 28px);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 
-  .char-avatar img {
+.page-title .accent { color: #FF86F6; }
+
+/* SELECT CHARACTER - GENSHIN STYLE */
+.grid-col {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow inner scroll */
+}
+
+.grid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.grid-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.45);
+}
+
+.grid-count {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(255,134,246,0.8);
+  font-weight: 700;
+}
+
+.tile-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: min-content; /* don't stretch rows to fill column height */
+  gap: 8px;
+  align-content: start;        /* pack from the top */
+  overflow-y: auto;
+  padding-right: 6px;
+  padding-bottom: 12px;
+  /* custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,134,246,0.3) transparent;
+}
+.tile-grid::-webkit-scrollbar { width: 6px; }
+.tile-grid::-webkit-scrollbar-track { background: transparent; }
+.tile-grid::-webkit-scrollbar-thumb {
+  background: rgba(255,134,246,0.25);
+  border-radius: 10px;
+}
+.tile-grid::-webkit-scrollbar-thumb:hover { background: rgba(255,134,246,0.5); }
+
+.tile {
+  position: relative;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, rgba(120,80,160,0.35) 0%, rgba(40,30,60,0.4) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tile img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-  .char-name { 
-    font-size: 18px; 
-    font-weight: 700; 
-    margin-bottom: 8px; 
-  }
-  .char-bio { 
-    font-size: 13px; 
-    color: rgba(234,235,237,0.5); 
-    line-height: 1.55; }
-
-  .char-select-badge {
-    display: none; margin-top: 16px;
-    background: #FF86F6; color: #121518;
-    border-radius: 20px; padding: 5px 16px;
-    font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
-  }
-  .char-card.selected .char-select-badge { 
-    display: block; 
-  }
-
-  .carousel-controls {
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    gap: 16px; margin-top: 32px;
-  }
-  .carousel-btn {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    color: #EAEBED; font-size: 18px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-    animation-play-state: paused;
-  }
-  .carousel-btn:hover { 
-    background: rgba(255,134,246,0.15); 
-    border-color: #FF86F6; 
-  }
-
-  .carousel-dots { 
-    display: flex; 
-    gap: 6px; }
-
-  .carousel-dot {
-    width: px; 
-    height: 30px; 
-    background: rgba(255,255,255,0.2); 
-    transition: all 0.2s;
-  }
-  .carousel-dot.active { background: #FF86F6; width: 18px; border-radius: 3px; }
-
-.choose-btn-wrap { 
-  position:absolute; 
-  bottom:10%; 
-  right:12%; 
-}
-.choose-btn {
-  font-family:'Barlow','Arial Black',sans-serif; 
-  font-weight:1000; 
-  font-size:clamp(20px,1.5vw,21px);
-  text-transform:uppercase; 
-  letter-spacing:.1em; 
-  color:#1a0800;
-  background:linear-gradient(90deg,#f5a020 0%,#c5f055 100%);
-  border:none; 
-  border-radius:200px; 
-  padding:.55em 1.9em; 
-  cursor:pointer;
-  transition:transform .15s,background .3s,color .3s;
-  margin-top: 5%;
+.tile .tile-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 3px 5px 4px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  font-weight: 700;
+  color: #EAEBED;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 60%, transparent);
 }
 
-.choose-btn.ready:hover { 
-  background:#fff; 
-  color:#12151B; 
+.tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,134,246,0.5);
+}
+
+.tile.selected {
+  border-color: #C5FF79;
+  box-shadow: 0 0 0 1px #C5FF79, 0 0 18px rgba(197,255,121,0.45);
+}
+
+.tile.selected::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 8px; height: 8px;
+  background: #C5FF79;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #C5FF79;
+}
+
+/* CHARACTER */
+.splash-col {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 24px 24px;
+  min-height: 0;
+}
+
+.splash-bigname {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(80px, 14vw, 220px);
+  font-weight: 900;
+  color: rgba(234,235,237,0.04);
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.splash-img-wrap {
+  position: relative;
+  z-index: 1;
+  height: 78%;
+  max-height: 620px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transition: transform 0.45s ease, opacity 0.45s ease;
+}
+
+.splash-img-wrap.swap {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.splash-img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 30px 40px rgba(0,0,0,0.55));
+}
+
+.splash-floor {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 24px;
+  background: radial-gradient(ellipse at center, rgba(255,134,246,0.35) 0%, transparent 70%);
+  filter: blur(6px);
+  z-index: 0;
+}
+
+.splash-nameplate {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 2;
+}
+
+.splash-nameplate .small {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: rgba(234,235,237,0.5);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.splash-nameplate .big {
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+}
+
+.splash-nameplate .pronouns {
+  font-size: 12px;
+  font-weight: 700;
+  color: #FF86F6;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* INFO PANEL */
+.info-col {
+  grid-column: 3;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-left: 18px;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(197,255,121,0.25) transparent;
+}
+.info-col::-webkit-scrollbar { width: 5px; }
+.info-col::-webkit-scrollbar-thumb { background: rgba(197,255,121,0.2); border-radius: 10px; }
+
+.info-block {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.info-block .label {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.4);
+  margin-bottom: 6px;
+}
+
+.info-block .value {
+  font-size: 13px;
+  font-weight: 400;
+  color: #EAEBED;
+  line-height: 1.5;
+  font-family: 'Barlow', sans-serif;
+}
+
+.hobbies-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.hobby-chip {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 100px;
+  background: rgba(47,83,249,0.18);
+  border: 1px solid rgba(47,83,249,0.4);
+  color: #a9bbff;
+}
+
+/* Trait bars */
+.trait-block {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.trait-title {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.4);
+  margin-bottom: 12px;
+}
+
+.trait-row {
+  display: grid;
+  grid-template-columns: 78px 1fr 78px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.trait-row:last-child { margin-bottom: 0; }
+
+.trait-row .pole {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.55);
+}
+.trait-row .pole.right { text-align: right; }
+
+.trait-track {
+  position: relative;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 100px;
+  overflow: visible;
+}
+
+.trait-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #FF86F6 0%, #C5FF79 100%);
+  border-radius: 100px;
+  transform-origin: left;
+  transform: scaleX(var(--v, 0.5));
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.trait-marker {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--v, 0.5) * 100%);
+  width: 12px;
+  height: 12px;
+  background: #EAEBED;
+  border: 2px solid #0c0e15;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px rgba(197,255,121,0.6);
+  transition: left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* MUSIC CARD */
+.music-block {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.music-title {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.4);
+  margin-bottom: 12px;
+}
+
+.music-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.music-art {
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255,134,246,0.3) 0%, rgba(47,83,249,0.3) 100%);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.music-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* spinning vinyl shimmer overlay */
+.music-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 50%);
+  pointer-events: none;
+}
+
+.music-info {
+  min-width: 0; /* let text truncate inside grid cell */
+}
+
+.music-song {
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #EAEBED;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-artist {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(234,235,237,0.55);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-progress {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 100px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.music-progress-fill {
+  position: absolute;
+  inset: 0;
+  width: 38%; /* mockup — looks like it's mid-song */
+  background: linear-gradient(90deg, #FF86F6, #C5FF79);
+  border-radius: 100px;
+}
+
+.music-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(234,235,237,0.4);
+  margin-bottom: 10px;
+  font-family: 'Barlow', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.music-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.music-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: rgba(234,235,237,0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.music-btn:hover {
+  color: #EAEBED;
+  transform: scale(1.1);
+}
+
+.music-btn.play {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(90deg, #f5a020, #c5f055);
+  color: #1a0800;
+}
+
+.music-btn.play:hover {
+  background: #fff;
+}
+
+.music-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.music-btn.play svg {
+  width: 12px;
+  height: 12px;
+  margin-left: 2px; /* optical nudge for the play triangle */
+}
+
+.actions {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.actions .hint {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.4);
+}
+
+.start-btn {
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+  font-weight: 1000;
+  font-size: clamp(16px, 1.2vw, 19px);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #1a0800;
+  background: linear-gradient(90deg, #f5a020 0%, #c5f055 100%);
+  border: none;
+  border-radius: 200px;
+  padding: 0.6em 2em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.start-btn:hover {
+  background: #fff;
+  color: #12151B;
+}
+
+.start-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+
+/* mobile fallback */
+@media (max-width: 1000px) {
+  html, body { overflow: auto; }
+  .page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto;
+    height: auto;
+    min-height: 100vh;
+    padding: 20px;
   }
-
-  
-.choose-btn.ready { opacity: 1; pointer-events: all; }
-  
-    @keyframes scroll {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-
-
+  .grid-col, .splash-col, .info-col, .actions { grid-column: 1; }
+  .grid-col { grid-row: 2; }
+  .splash-col { grid-row: 3; height: 60vh; }
+  .info-col { grid-row: 4; border-left: none; padding-left: 0; }
+  .actions { grid-row: 5; }
+  .tile-grid {
+    grid-template-columns: repeat(6, 1fr);
+    max-height: 220px;
+  }
+  .splash-bigname { font-size: 22vw; }
+}
 
 </style>
 </head>
 <body>
 
-<!-- CHOOSE CHARACTER -->
-<section id="screen-choose" class="screen active">
-  <h1 class="section-title float-text">Choose Your Character</h1>
-  <p class="section-sub">Pick the SYDE student whose journey you want to follow</p>
+<canvas id="bgCanvas"></canvas>
 
-  <div class="carousel-wrapper">
-    <div class="carousel-track-outer">
-      <div class="carousel-track" id="carouselTrack"></div>
+<div class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="crumbs">
+      <span>Class of '29</span>
+      <span class="sep">/</span>
+      <span class="active">Choose Your Character</span>
     </div>
-    <div class="carousel-controls">
-      <button class="carousel-btn" id="prevBtn">&#8592;</button>
-      <div class="carousel-dots" id="carouselDots"></div>
-      <button class="carousel-btn" id="nextBtn">&#8594;</button>
+    <div class="page-title">Pick your <span class="accent">SYDE</span></div>
+  </div>
+
+  <!-- tile grid -->
+  <div class="grid-col">
+    <div class="grid-header">
+      <div class="grid-label">Roster</div>
+      <div class="grid-count" id="roster-count">— / —</div>
+    </div>
+    <div class="tile-grid" id="tileGrid"></div>
+  </div>
+
+  <!-- character splash -->
+  <div class="splash-col">
+    <div class="splash-bigname" id="splashBigName">SYDE</div>
+    <div class="splash-img-wrap" id="splashWrap">
+      <img class="splash-img" id="splashImg" src="" alt=""/>
+    </div>
+    <div class="splash-floor"></div>
+    <div class="splash-nameplate">
+      <div class="small" id="splashLevel">SYDE '29 / Member</div>
+      <div class="big" id="splashName">—</div>
+      <div class="pronouns" id="splashPronouns">—</div>
     </div>
   </div>
 
-  <canvas id="bgCanvas"></canvas>
+  <!-- info -->
+  <div class="info-col">
+    <div class="info-block">
+      <div class="label">Fun Fact</div>
+      <div class="value" id="infoFunFact">—</div>
+    </div>
 
-  <button class="choose-btn" id="chooseBtn">Start Adventure</button>
-</section>
+    <div class="info-block">
+      <div class="label">Hobbies</div>
+      <div class="hobbies-list" id="infoHobbies"></div>
+    </div>
 
+    <div class="trait-block">
+      <div class="trait-title">Vibe Check</div>
+      <div class="trait-row">
+        <div class="pole">Introvert</div>
+        <div class="trait-track"><div class="trait-fill" data-axis="social"></div><div class="trait-marker" data-axis="social"></div></div>
+        <div class="pole right">Extrovert</div>
+      </div>
+      <div class="trait-row">
+        <div class="pole">Night Owl</div>
+        <div class="trait-track"><div class="trait-fill" data-axis="schedule"></div><div class="trait-marker" data-axis="schedule"></div></div>
+        <div class="pole right">Early Bird</div>
+      </div>
+      <div class="trait-row">
+        <div class="pole">Logical</div>
+        <div class="trait-track"><div class="trait-fill" data-axis="thinking"></div><div class="trait-marker" data-axis="thinking"></div></div>
+        <div class="pole right">Creative</div>
+      </div>
+      <div class="trait-row">
+        <div class="pole">Non-chalant</div>
+        <div class="trait-track"><div class="trait-fill" data-axis="vibe"></div><div class="trait-marker" data-axis="vibe"></div></div>
+        <div class="pole right">Chalant</div>
+      </div>
+      <div class="trait-row">
+        <div class="pole">Polite</div>
+        <div class="trait-track"><div class="trait-fill" data-axis="speech"></div><div class="trait-marker" data-axis="speech"></div></div>
+        <div class="pole right">Direct</div>
+      </div>
+    </div>
 
+    <div class="music-block">
+      <div class="music-title">Now Playing</div>
+
+      <div class="music-row">
+        <div class="music-art">
+          <img id="musicArt" src="" alt="" onerror="this.style.display='none'"/>
+        </div>
+        <div class="music-info">
+          <div class="music-song" id="musicSong">—</div>
+          <div class="music-artist" id="musicArtist">—</div>
+        </div>
+      </div>
+
+      <div class="music-progress">
+        <div class="music-progress-fill"></div>
+      </div>
+      <div class="music-times">
+        <span>1:14</span>
+        <span id="musicDuration">3:22</span>
+      </div>
+
+      <div class="music-controls">
+        <button class="music-btn" aria-label="Previous">
+          <svg viewBox="0 0 16 16"><path d="M3 2v12h2V8.5l8 5.5V2L5 7.5V2z"/></svg>
+        </button>
+        <button class="music-btn play" aria-label="Play">
+          <svg viewBox="0 0 16 16"><path d="M3 2v12l11-6z"/></svg>
+        </button>
+        <button class="music-btn" aria-label="Next">
+          <svg viewBox="0 0 16 16"><path d="M13 2v12h-2V8.5l-8 5.5V2l8 5.5V2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <div class="hint">Tap a tile to inspect · Press <strong>START</strong> when you're ready</div>
+    <button class="start-btn" id="startBtn" disabled>Start Adventure</button>
+  </div>
+
+</div>
 
 <script>
-const characters = [
-  { img: "images/Ian.png", name: "Ian", bio: "Helped to develop this website!" },
-  { img: "images/Nandika.png", name: "Nandika", bio: "Helped to develop this website!" },
-  { img: "images/Tonia.png", name: "Tonia", bio: "Helped to develop this website!" },
-  { img: "images/Rachael.png", name: "Rachael", bio: "Helped to develop this website!" },
-  { img: "images/Luna.png", name: "Luna", bio: "Helped to develop this website!" },
-  { img: "images/Nikki.png", name: "Nikki", bio: "Helped to develop this website!" },
-  { img: "images/Marwa.png", name: "Marwa", bio: "Helped to develop this website!" },
-  {img: "images/Linda.png", name: "Linda", bio: "Helped to develop this website!" },
-  { img: "images/Sara.png", name: "Sara", bio: "Helped to develop this website!" },
-  { img: "images/Joy.png", name: "Joy", bio: "Helped to develop this website!" },
-  { img: "images/Seohee.png", name: "Seohee", bio: "Made this beta ver! <3" },
+/** CHARACTERS DATASHEET:
+ * Add a new person: paste another object into this array.
+ * Required: file (the filename inside images/characters/).
+ * Everything else is optional — anything missing falls back to
+ * lorem-style placeholders or randomized settings so the page never breaks.
+**/
+
+const CHARACTERS = [
+  { file: "Ian.png",     name: "Ian",     pronouns: "" },
+  { file: "Nandika.png", name: "Nandika", pronouns: "" },
+  { file: "Tonia.png",   name: "Tonia",   pronouns: "" },
+  { file: "Rachael.png", name: "Rachael", pronouns: "" },
+  { file: "Luna.png",    name: "Luna",    pronouns: "" },
+  { file: "Nikki.png",   name: "Nikki",   pronouns: "" },
+  { file: "Marwa.png",   name: "Marwa",   pronouns: "" },
+  { file: "Linda.png",   name: "Linda",   pronouns: "she/her" , funFact: "I forget everything important but somehow know full song lyrics by heart" , hobbies: ["Drawing", "Gardening", "Baking"] , traits: { social: 0.2, schedule: 0.5, thinking: 0.3, vibe: 0.8, speech: 0.7 } , song: { song: "Too Sweet" , artist: "Hozier"} },
+  { file: "Sara.png",    name: "Sara",    pronouns: "" },
+  { file: "Joy.png",     name: "Joy",     pronouns: "" },
+  { file: "Seohee.png",  name: "Seohee",  pronouns: "" },
 ];
 
+// where the images live, relative to this HTML file
+const IMG_BASE = "images/";
 
-const track = document.getElementById('carouselTrack');
+/* TEMP: Lorem placeholders */
+const LOREM_FACTS = [
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+  "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+  "Excepteur sint occaecat cupidatat non proident, sunt in culpa.",
+  "Curabitur pretium tincidunt lacus. Nulla gravida orci a odio.",
+  "Vivamus vestibulum sagittis sapien. Cum sociis natoque penatibus.",
+  "Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed.",
+];
 
-let scrollX = 0;
-let autoScroll;
-let selectedChar = null;
+const LOREM_HOBBIES = [
+  "Lorem", "Ipsum", "Dolor", "Sit Amet", "Consectetur",
+  "Adipiscing", "Tempor", "Magna", "Veniam", "Ullamco",
+  "Reprehenderit", "Voluptate", "Excepteur", "Cupidatat", "Proident",
+];
 
-const speed = 0.5;
-const cardW = 260;
+const LOREM_SONGS = [
+  { song: "Lorem Ipsum",         artist: "Dolor Sit Amet" },
+  { song: "Consectetur",         artist: "Adipiscing Elit" },
+  { song: "Tempor Incididunt",   artist: "Magna Aliqua" },
+  { song: "Veniam Quis Nostrud", artist: "Ullamco Laboris" },
+  { song: "Duis Aute Irure",     artist: "Voluptate Velit" },
+  { song: "Excepteur Sint",      artist: "Cupidatat Proident" },
+  { song: "Sunt In Culpa",       artist: "Mollit Anim" },
+  { song: "Vivamus Vestibulum",  artist: "Sagittis Sapien" },
+];
 
+// tiny string hash → 0..1 float, deterministic
+function seededRand(seed, salt) {
+  let h = 2166136261 >>> 0;
+  const str = seed + ":" + salt;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 10000) / 10000;
+}
 
-function buildCarousel() {
-  track.innerHTML = '';
-
-  const all = [...characters, ...characters]; // duplicate once
-
-  all.forEach((c, i) => {
-    const realIndex = i % characters.length;
-
-    const card = document.createElement('div');
-    card.className = 'char-card';
-
-    if (selectedChar === realIndex) {
-      card.classList.add('selected');
+function placeholderFor(char) {
+  const seed = char.name || char.file;
+  const factIdx = Math.floor(seededRand(seed, "fact") * LOREM_FACTS.length);
+  const hobbyCount = 2 + Math.floor(seededRand(seed, "hobbycount") * 3); // 2..4
+  const hobbies = [];
+  const used = new Set();
+  let n = 0;
+  while (hobbies.length < hobbyCount && n < 20) {
+    const idx = Math.floor(seededRand(seed, "hobby" + n) * LOREM_HOBBIES.length);
+    if (!used.has(idx)) {
+      used.add(idx);
+      hobbies.push(LOREM_HOBBIES[idx]);
     }
+    n++;
+  }
+  return {
+    funFact: char.funFact || LOREM_FACTS[factIdx],
+    hobbies: char.hobbies && char.hobbies.length ? char.hobbies : hobbies,
+    song: char.song || LOREM_SONGS[Math.floor(seededRand(seed, "song") * LOREM_SONGS.length)],
+    traits: char.traits || {
+      social:   0.15 + seededRand(seed, "social")   * 0.7,
+      schedule:     0.15 + seededRand(seed, "schedule")     * 0.7,
+      thinking:     0.15 + seededRand(seed, "thinking")     * 0.7,
+      vibe: 0.15 + seededRand(seed, "vibe") * 0.7,
+      speech:   0.15 + seededRand(seed, "speech")   * 0.7,
+    }
+  };
+}
 
-    card.innerHTML = `
-    <div class="char-avatar">
-      <img src="${c.img}" alt="${c.name}">
-    </div>
-      <div class="char-name">${c.name}</div>
-      <div class="char-bio">${c.bio}</div>
-      <div class="char-select-badge">SELECTED</div>
+const grid = document.getElementById('tileGrid');
+const rosterCount = document.getElementById('roster-count');
+let selectedIdx = null;
+
+function buildGrid() {
+  grid.innerHTML = '';
+  CHARACTERS.forEach((c, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.dataset.idx = i;
+    tile.innerHTML = `
+      <img src="${IMG_BASE}${c.file}" alt="${c.name}" onerror="this.style.display='none'"/>
+      <div class="tile-name">${c.name}</div>
     `;
-
-    card.onclick = () => {
-      selectedChar = realIndex;
-      updateSelection();
-      updateChooseBtn();
-    };
-
-    track.appendChild(card);
+    tile.addEventListener('click', () => selectCharacter(i));
+    grid.appendChild(tile);
   });
+  updateRosterCount();
 }
 
-// Update selection highlight
-function updateSelection() {
-  const cards = track.querySelectorAll('.char-card');
+function updateRosterCount() {
+  const sel = selectedIdx !== null ? String(selectedIdx + 1).padStart(2, '0') : '—';
+  const tot = String(CHARACTERS.length).padStart(2, '0');
+  rosterCount.textContent = `${sel} / ${tot}`;
+}
 
-  cards.forEach((card, i) => {
-    const realIndex = i % characters.length;
+/* SELECT CHARACTER */
+const splashWrap     = document.getElementById('splashWrap');
+const splashImg      = document.getElementById('splashImg');
+const splashName     = document.getElementById('splashName');
+const splashPronouns = document.getElementById('splashPronouns');
+const splashBigName  = document.getElementById('splashBigName');
+const infoFunFact    = document.getElementById('infoFunFact');
+const infoHobbies    = document.getElementById('infoHobbies');
+const startBtn       = document.getElementById('startBtn');
 
-    card.classList.toggle('selected', realIndex === selectedChar);
+function selectCharacter(i) {
+  selectedIdx = i;
+  const c = CHARACTERS[i];
+  const data = placeholderFor(c);
+
+  // highlight tile
+  document.querySelectorAll('.tile').forEach(t => {
+    t.classList.toggle('selected', Number(t.dataset.idx) === i);
   });
-}
 
-// Movement
-function moveCarousel() {
-  scrollX += speed;
+  // swap splash with a tiny fade
+  splashWrap.classList.add('swap');
+  setTimeout(() => {
+    splashImg.src = IMG_BASE + c.file;
+    splashImg.alt = c.name;
+    splashWrap.classList.remove('swap');
+  }, 200);
 
-  const totalWidth = cardW * characters.length;
+  // name plates
+  splashBigName.textContent = c.name.toUpperCase();
+  splashName.textContent = c.name;
+  splashPronouns.textContent = c.pronouns || '—';
 
-  if (scrollX >= totalWidth) {
-    scrollX = 0;
+  // info
+  infoFunFact.textContent = data.funFact;
+  infoHobbies.innerHTML = data.hobbies
+    .map(h => `<span class="hobby-chip">${h}</span>`)
+    .join('');
+
+  // Now Playing
+  document.getElementById('musicSong').textContent = data.song.song;
+  document.getElementById('musicArtist').textContent = data.song.artist;
+  const art = document.getElementById('musicArt');
+  if (data.song.art) {
+    art.src = data.song.art;
+    art.style.display = '';
+  } else {
+    art.style.display = 'none';
   }
 
-  track.style.transform = `translateX(-${scrollX}px)`;
+  // trait bars
+  Object.entries(data.traits).forEach(([axis, v]) => {
+    document.querySelectorAll(`[data-axis="${axis}"]`).forEach(el => {
+      el.style.setProperty('--v', v.toFixed(3));
+    });
+  });
+
+  startBtn.disabled = false;
+  updateRosterCount();
 }
 
-// Auto scroll
-function startAutoScroll() {
-  autoScroll = setInterval(moveCarousel, 16);
-}
+// init: build grid + auto-select first
+buildGrid();
+if (CHARACTERS.length) selectCharacter(0);
 
-// Stop
-function stopAutoScroll() {
-  clearInterval(autoScroll);
-}
+startBtn.addEventListener('click', () => {
+  if (selectedIdx === null) return;
+  window.location.href = `adventure.html?char=${selectedIdx}`;
+});
 
-// BUTTONS
-document.getElementById('nextBtn').onclick = () => {
-  stopAutoScroll();
-  scrollX += cardW;
-  moveCarousel();
-};
-
-document.getElementById('prevBtn').onclick = () => {
-  stopAutoScroll();
-  scrollX -= cardW;
-
-  if (scrollX < 0) {
-    scrollX = cardW * (characters.length - 1);
-  }
-
-  moveCarousel();
-};
-
-// Hover pause
-track.addEventListener('mouseenter', stopAutoScroll);
-track.addEventListener('mouseleave', startAutoScroll);
-
-
-function updateChooseBtn() {
-  document.getElementById('chooseBtn')
-    .classList.toggle('ready', selectedChar !== null);
-}
-
-
-buildCarousel();
-startAutoScroll();
-
-//button link to 
-chooseBtn.onclick = () => {
-  if (selectedChar !== null) {
-    window.location.href = `adventure.html?char=${selectedChar}`;
-  }
-};
-
-//stars in bg
 function drawStar(ctx, cx, cy, sH, sV, a, config) {
   const { glow, colorFn } = config;
-
-  // glow background
   const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
-
-  glow.forEach((g, i) => {
-    bg.addColorStop(g.stop, g.color(a));
-  });
-
+  glow.forEach(g => bg.addColorStop(g.stop, g.color(a)));
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
   ctx.fillStyle = bg;
   ctx.fill();
   ctx.restore();
-
-  // star layers
   for (let i = 80; i >= 0; i--) {
     const t = i / 80;
-    const sh = sH * t;
-    const sv = sV * t;
-
+    const sh = sH * t, sv = sV * t;
     const [r, g, b] = colorFn(t);
-
     const op = a * 0.55 * (1 - Math.pow(t, 0.8));
     if (op <= 0.002) continue;
-
-    const wx = sh * 0.08;
-    const wy = sv * 0.08;
-
+    const wx = sh * 0.08, wy = sv * 0.08;
     ctx.save();
     ctx.globalAlpha = op;
     ctx.fillStyle = `rgb(${r},${g},${b})`;
-
     ctx.beginPath();
     ctx.moveTo(cx, cy - sv);
     ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
     ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
     ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
     ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
-
     ctx.closePath();
     ctx.fill();
     ctx.restore();
@@ -437,66 +960,45 @@ function drawStar(ctx, cx, cy, sH, sV, a, config) {
 }
 const greenStar = {
   glow: [
-    { stop: 0, color: a => `rgba(90,40,100,${a * 0.28})` },
-    { stop: 0.35, color: a => `rgba(30,10,150,${a * 0.14})` },
-    { stop: 0.7, color: a => `rgba(200,80,35,${a * 0.06})` },
-    { stop: 1, color: () => `rgba(10,150,60,0)` }
+    { stop: 0,    color: a => `rgba(90,40,100,${a*0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a*0.14})` },
+    { stop: 0.7,  color: a => `rgba(200,80,35,${a*0.06})` },
+    { stop: 1,    color: () => `rgba(10,150,60,0)` }
   ],
-
-  colorFn: t => [
-    58 + (180 - 58) * t,
-    79 + (240 - 79) * t,
-    212 + (50 - 212) * t
-  ]
+  colorFn: t => [58 + (180-58)*t, 79 + (240-79)*t, 212 + (50-212)*t]
 };
 const purpleStar = {
   glow: [
-    { stop: 0, color: a => `rgba(120,40,200,${a * 0.3})` },
+    { stop: 0, color: a => `rgba(120,40,200,${a*0.3})` },
     { stop: 1, color: () => `rgba(0,0,0,0)` }
   ],
-
-  colorFn: t => [
-    80 + (130 - 80) * t,
-    30 + (60 - 30) * t,
-    255
-  ]
+  colorFn: t => [80 + (130-80)*t, 30 + (60-30)*t, 255]
 };
 const pinkStar = {
   glow: [
-    { stop: 0, color: a => `rgba(200,60,130,${a * 0.28})` },
+    { stop: 0, color: a => `rgba(200,60,130,${a*0.28})` },
     { stop: 1, color: () => `rgba(0,0,0,0)` }
   ],
-
-  colorFn: t => [
-    255,
-    60 + (150 - 60) * t,
-    180 + (80 - 180) * t
-  ]
+  colorFn: t => [255, 60 + (150-60)*t, 180 + (80-180)*t]
 };
 
 function renderBg() {
   const c = document.getElementById('bgCanvas');
-  const W = c.width = c.offsetWidth;
+  const W = c.width  = c.offsetWidth;
   const H = c.height = c.offsetHeight;
   const ctx = c.getContext('2d');
-
   ctx.clearRect(0, 0, W, H);
-
   const sH = Math.min(W, H) * 0.3;
   const sV = Math.min(W, H) * 0.36;
-
   ctx.filter = 'blur(14px)';
-
-  drawStar(ctx, W * 0.1, H * 0.5, sH, sV, 1, greenStar);
-  drawStar(ctx, W * 0.88, H * 0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.1,  H * 0.5,  sH,        sV,        1, greenStar);
+  drawStar(ctx, W * 0.88, H * 0.04, sH,        sV,        1, purpleStar);
   drawStar(ctx, W * 0.85, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
-
   ctx.filter = 'none';
 }
 
-window.addEventListener('load',()=>{renderBg();drawCoop();drawGender();});
-window.addEventListener('resize',()=>{renderBg();drawCoop();drawGender();});
-
+window.addEventListener('load',   renderBg);
+window.addEventListener('resize', renderBg);
 </script>
 </body>
 </html>
