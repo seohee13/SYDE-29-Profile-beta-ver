@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign Up - SYDE29</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0c0e15;
+  color: #EAEBED;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+}
+
+#bgCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.topbar {
+  position: absolute;
+  top: 28px;
+  left: 36px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.logo {
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.logo .accent { color: #FF86F6; }
+
+.crumbs {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.5);
+}
+
+.signup-container {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 36px 36px;
+  backdrop-filter: blur(10px);
+  margin: auto;
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.signup-header h1 {
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.signup-header p {
+  font-size: 13px;
+  color: rgba(234,235,237,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.6);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: #EAEBED;
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.form-input::placeholder {
+  color: rgba(234,235,237,0.3);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #FF86F6;
+  background: rgba(255,255,255,0.08);
+}
+
+.form-select {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: #EAEBED;
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23EAEBED' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #FF86F6;
+  background-color: rgba(255,255,255,0.08);
+}
+
+.form-select option {
+  background: #0c0e15;
+  color: #EAEBED;
+}
+
+.password-hint {
+  font-size: 11px;
+  color: rgba(234,235,237,0.4);
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+}
+
+.signup-btn {
+  width: 100%;
+  padding: 16px 24px;
+  margin-top: 8px;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+  font-weight: 900;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #1a0800;
+  background: linear-gradient(90deg, #f5a020 0%, #c5f055 100%);
+  border: none;
+  border-radius: 200px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.signup-btn:hover {
+  background: #fff;
+  color: #12151B;
+}
+
+.signup-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+  gap: 16px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+}
+
+.divider span {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(234,235,237,0.4);
+}
+
+.uw-signup-btn {
+  width: 100%;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: 'Barlow', 'Arial Black', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #EAEBED;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 200px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.uw-signup-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.25);
+}
+
+.uw-logo {
+  width: 24px;
+  height: 24px;
+  background: #FFD700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 12px;
+  color: #1a0800;
+}
+
+.signup-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.signup-footer p {
+  font-size: 13px;
+  color: rgba(234,235,237,0.5);
+}
+
+.signup-footer a {
+  color: #FF86F6;
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.signup-footer a:hover {
+  color: #C5FF79;
+}
+
+.terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.terms input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #FF86F6;
+  cursor: pointer;
+}
+
+.terms label {
+  font-size: 12px;
+  color: rgba(234,235,237,0.6);
+  line-height: 1.5;
+}
+
+.terms a {
+  color: #FF86F6;
+  text-decoration: none;
+}
+
+.terms a:hover {
+  color: #C5FF79;
+}
+
+.error-message {
+  display: none;
+  padding: 12px 16px;
+  background: rgba(255,86,86,0.15);
+  border: 1px solid rgba(255,86,86,0.3);
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.success-message {
+  display: none;
+  padding: 12px 16px;
+  background: rgba(197,255,121,0.15);
+  border: 1px solid rgba(197,255,121,0.3);
+  border-radius: 8px;
+  color: #C5FF79;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* mobile */
+@media (max-width: 480px) {
+  .signup-container {
+    padding: 28px 20px;
+  }
+  .topbar {
+    left: 20px;
+    top: 20px;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="page">
+  <div class="topbar">
+    <div class="logo">A Look <span class="accent">InSYDE</span></div>
+    <div class="crumbs">/ Sign Up</div>
+  </div>
+
+  <div class="signup-container">
+    <div class="signup-header">
+      <h1>Create Account</h1>
+      <p>Join the SYDE '29 community</p>
+    </div>
+
+    <div class="error-message" id="errorMsg"></div>
+    <div class="success-message" id="successMsg"></div>
+
+    <form id="signupForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="firstName">First Name</label>
+          <input 
+            type="text" 
+            id="firstName" 
+            class="form-input" 
+            placeholder="John"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lastName">Last Name</label>
+          <input 
+            type="text" 
+            id="lastName" 
+            class="form-input" 
+            placeholder="Doe"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          class="form-input" 
+          placeholder="you@uwaterloo.ca"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          class="form-input" 
+          placeholder="Create a password"
+          required
+          minlength="8"
+        />
+        <p class="password-hint">Must be at least 8 characters</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirmPassword">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          class="form-input" 
+          placeholder="Confirm your password"
+          required
+        />
+      </div>
+
+      <div class="terms">
+        <input type="checkbox" id="agreeTerms" required />
+        <label for="agreeTerms">
+          I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. 
+          I understand this is a class profile project.
+        </label>
+      </div>
+
+      <button type="submit" class="signup-btn" id="signupBtn">Create Account</button>
+    </form>
+
+    <div class="signup-footer">
+      <p>Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+  glow.forEach(g => bg.addColorStop(g.stop, g.color(a)));
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.restore();
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80;
+    const sh = sH * t, sv = sV * t;
+    const [r, g, b] = colorFn(t);
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+    const wx = sh * 0.08, wy = sv * 0.08;
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+const greenStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(90,40,100,${a*0.28})` },
+    { stop: 0.35, color: a => `rgba(30,10,150,${a*0.14})` },
+    { stop: 0.7, color: a => `rgba(200,80,35,${a*0.06})` },
+    { stop: 1, color: () => `rgba(10,150,60,0)` }
+  ],
+  colorFn: t => [58 + (180-58)*t, 79 + (240-79)*t, 212 + (50-212)*t]
+};
+
+const purpleStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(120,40,200,${a*0.3})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+  colorFn: t => [80 + (130-80)*t, 30 + (60-30)*t, 255]
+};
+
+const pinkStar = {
+  glow: [
+    { stop: 0, color: a => `rgba(200,60,130,${a*0.28})` },
+    { stop: 1, color: () => `rgba(0,0,0,0)` }
+  ],
+  colorFn: t => [255, 60 + (150-60)*t, 180 + (80-180)*t]
+};
+
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth;
+  const H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  const sH = Math.min(W, H) * 0.3;
+  const sV = Math.min(W, H) * 0.36;
+  ctx.filter = 'blur(14px)';
+  drawStar(ctx, W * 0.1, H * 0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W * 0.88, H * 0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W * 0.85, H * 0.82, sH * 0.85, sV * 0.85, 1, pinkStar);
+  ctx.filter = 'none';
+}
+
+window.addEventListener('load', renderBg);
+window.addEventListener('resize', renderBg);
+
+const signupForm = document.getElementById('signupForm');
+const errorMsg = document.getElementById('errorMsg');
+const successMsg = document.getElementById('successMsg');
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+  successMsg.style.display = 'none';
+}
+
+function showSuccess(msg) {
+  successMsg.textContent = msg;
+  successMsg.style.display = 'block';
+  errorMsg.style.display = 'none';
+}
+
+signupForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const agreeTerms = document.getElementById('agreeTerms').checked;
+  
+  if (!firstName || !lastName || !email || !password) {
+    showError('Please fill in all required fields');
+    return;
+  }
+  
+  if (password.length < 8) {
+    showError('Password must be at least 8 characters');
+    return;
+  }
+  
+  if (password !== confirmPassword) {
+    showError('Passwords do not match');
+    return;
+  }
+  
+  if (!agreeTerms) {
+    showError('Please agree to the Terms of Service');
+    return;
+  }
+  
+  if (!email.endsWith('@uwaterloo.ca')) {
+    showError('Please use your @uwaterloo.ca email address');
+    return;
+  }
+
+  const userData = {
+    firstName,
+    lastName,
+    email,
+    program: 'syde',
+    password,
+    createdAt: new Date().toISOString()
+  };
+  
+  // Store in localStorage (demo only - use proper backend in production)
+  let users = JSON.parse(localStorage.getItem('syde29_users') || '[]');
+  
+  // Check if email already exists
+  if (users.find(u => u.email === email)) {
+    showError('An account with this email already exists');
+    return;
+  }
+  
+  users.push(userData);
+  localStorage.setItem('syde29_users', JSON.stringify(users));
+  localStorage.setItem('syde29_current_user', JSON.stringify(userData));
+  
+  showSuccess('Account created successfully! Redirecting...');
+  
+  setTimeout(() => {
+    window.location.href = 'choose.html';
+  }, 1500);
+});
+
+
+</script>
+
+</body>
+</html>
