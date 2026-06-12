@@ -598,7 +598,7 @@ signupForm.addEventListener('submit', (e) => {
   showSuccess('Account created successfully! Redirecting...');
   
   setTimeout(() => {
-    window.location.href = 'choose.html';
+    window.location.href = 'createcharacter.html';   // was 'choose.html', when someone first creates an account they'll be directed to creating their character (Can get skipped if character alr exists = e.g. for dev team)
   }, 1500);
 });
 
