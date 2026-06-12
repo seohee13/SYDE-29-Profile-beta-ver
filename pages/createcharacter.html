@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Create Character - SYDE29</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width:100%; min-height:100%; background:#0c0e15; color:#EAEBED; font-family:'Barlow','Arial Black',sans-serif; }
+
+#bgCanvas { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:0.55; }
+
+.topbar { position:fixed; top:28px; left:36px; z-index:3; display:flex; align-items:baseline; gap:12px; }
+.logo { font-size:clamp(20px,2vw,28px); font-weight:900; text-transform:uppercase; letter-spacing:0.04em; }
+.logo .accent { color:#FF86F6; }
+.crumbs { font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:rgba(234,235,237,0.5); }
+
+.page { position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:110px 24px 130px; }
+.head { text-align:center; margin-bottom:26px; }
+.head .step { font-size:12px; letter-spacing:0.3em; text-transform:uppercase; color:#C5FF79; margin-bottom:12px; }
+.head h1 { font-size:clamp(28px,4vw,44px); font-weight:900; text-transform:uppercase; letter-spacing:0.03em; }
+.head p { margin-top:6px; font-size:12px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(234,235,237,0.5); }
+
+.builder { display:grid; grid-template-columns:minmax(260px,340px) minmax(320px,460px); gap:26px; width:100%; max-width:860px; align-items:start; }
+
+.preview { position:sticky; top:110px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:24px; backdrop-filter:blur(10px); text-align:center; }
+.avatar-frame { position:relative; width:100%; max-width:220px; margin:0 auto; aspect-ratio:3/5; border-radius:14px; overflow:hidden; background:radial-gradient(circle at 50% 50%, rgba(155,93,229,0.55) 0%, rgba(155,93,229,0.16) 50%, #0c0e15 78%); border:1px solid rgba(255,255,255,0.06); }
+.avatar-frame img { position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; image-rendering:crisp-edges; }
+.preview-name { display:block; width:100%; margin-top:16px; text-align:center; font-family:'Barlow','Arial Black',sans-serif; font-size:22px; font-weight:900; text-transform:uppercase; letter-spacing:0.03em; color:#EAEBED; background:transparent; border:0; border-bottom:2px solid transparent; padding:2px 0 5px; outline:none; transition:border-color 0.2s ease; }
+.preview-name::placeholder { color:rgba(234,235,237,0.3); }
+.preview-name:hover { border-bottom-color:rgba(255,255,255,0.14); }
+.preview-name:focus { border-bottom-color:#FF86F6; }
+.preview-tag { margin-top:4px; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:#C5FF79; min-height:16px; }
+.dice-btn { margin-top:18px; width:100%; padding:12px; font-family:'Barlow',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:#EAEBED; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:200px; cursor:pointer; transition:all 0.2s ease; }
+.dice-btn:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.28); }
+
+.controls { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 24px; backdrop-filter:blur(10px); }
+.field { margin-bottom:24px; }
+.field:last-child { margin-bottom:0; }
+.field-label { display:block; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(234,235,237,0.6); margin-bottom:12px; }
+.text-input { width:100%; padding:13px 15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#EAEBED; font-family:'Barlow',sans-serif; font-size:15px; transition:all 0.2s ease; }
+.text-input::placeholder { color:rgba(234,235,237,0.3); }
+.text-input:focus { outline:none; border-color:#FF86F6; background:rgba(255,255,255,0.08); }
+
+.tabs { display:flex; align-items:flex-end; gap:6px; margin:0 0 -1px; padding:0 16px; position:relative; z-index:1; }
+.tab { padding:11px 20px; font-family:'Barlow',sans-serif; font-weight:900; font-size:12px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(234,235,237,0.45); background:rgba(255,255,255,0.015); border:1px solid rgba(255,255,255,0.08); border-bottom:none; border-radius:13px 13px 0 0; cursor:pointer; transition:color 0.18s ease, background 0.18s ease, padding 0.18s ease; }
+.tab:hover { color:rgba(234,235,237,0.85); }
+.tab.active { color:#EAEBED; background:rgba(255,255,255,0.04); border-top:2px solid #FF86F6; border-bottom:none; padding-top:14px; }
+.empty-note { font-size:13px; line-height:1.6; color:rgba(234,235,237,0.45); }
+
+.swatches { display:flex; flex-wrap:wrap; gap:9px; }
+.swatch { width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.12); transition:transform 0.12s ease, border-color 0.12s ease; }
+.swatch:hover { transform:scale(1.12); }
+.swatch.sel { border-color:#fff; transform:scale(1.12); }
+
+.eye-grid { display:flex; flex-wrap:wrap; gap:10px; }
+.eye-opt { width:62px; cursor:pointer; text-align:center; }
+.eye-win { width:62px; height:62px; border-radius:10px; overflow:hidden; position:relative; background:#0c0e15; border:2px solid rgba(255,255,255,0.1); transition:border-color 0.12s ease; display:flex; align-items:center; justify-content:center; }
+.eye-opt:hover .eye-win { border-color:rgba(255,255,255,0.35); }
+.eye-opt.sel .eye-win { border-color:#FF86F6; }
+.eye-stage { position:absolute; width:134px; height:223px; left:-36px; top:-98px; }
+.eye-stage img { position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; image-rendering:crisp-edges; }
+.pills { display:flex; flex-wrap:wrap; gap:8px; }
+.pill { padding:9px 16px; font-family:'Barlow',sans-serif; font-weight:700; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(234,235,237,0.7); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:200px; cursor:pointer; transition:all 0.15s ease; }
+.pill:hover { border-color:rgba(255,255,255,0.3); color:#EAEBED; }
+.pill.sel { color:#1a0800; background:linear-gradient(90deg,#f5a020 0%,#c5f055 100%); border-color:transparent; }
+.eye-cap { margin-top:5px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:rgba(234,235,237,0.55); }
+.eye-opt.sel .eye-cap { color:#EAEBED; }
+
+.continue-wrap { position:fixed; bottom:1.25rem; right:1.5rem; z-index:3; display:flex; align-items:center; gap:16px; }
+.skip-btn { font-family:'Barlow',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(234,235,237,0.55); background:none; border:none; cursor:pointer; transition:color 0.2s ease; }
+.skip-btn:hover { color:#FF86F6; }
+.modal-overlay { position:fixed; inset:0; z-index:10; display:none; align-items:center; justify-content:center; background:rgba(8,9,13,0.72); backdrop-filter:blur(4px); padding:20px; }
+.modal-overlay.show { display:flex; }
+.modal { width:100%; max-width:380px; background:#14161d; border:1px solid rgba(255,255,255,0.1); border-radius:18px; padding:28px 26px; text-align:center; }
+.modal h3 { font-size:19px; font-weight:900; text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px; }
+.modal p { font-size:14px; line-height:1.6; color:rgba(234,235,237,0.65); margin-bottom:24px; }
+.modal-actions { display:flex; gap:10px; }
+.modal-cancel, .modal-confirm { flex:1; padding:13px 10px; font-family:'Barlow',sans-serif; font-weight:900; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; border-radius:200px; cursor:pointer; transition:all 0.2s ease; }
+.modal-cancel { color:#1a0800; background:linear-gradient(90deg,#f5a020 0%,#c5f055 100%); border:none; }
+.modal-cancel:hover { background:#fff; color:#12151B; }
+.modal-confirm { color:rgba(234,235,237,0.65); background:none; border:1px solid rgba(255,255,255,0.15); }
+.modal-confirm:hover { color:#EAEBED; border-color:rgba(255,255,255,0.3); }
+.continue-btn { font-family:'Barlow','Arial Black',sans-serif; font-weight:1000; font-size:clamp(18px,1.5vw,21px); text-transform:uppercase; letter-spacing:0.1em; color:#1a0800; background:linear-gradient(90deg,#f5a020 0%,#c5f055 100%); border:none; border-radius:200px; padding:0.55em 1.9em; cursor:pointer; transition:all 0.25s ease; }
+.continue-btn:hover { background:#fff; color:#12151B; }
+.back-link { position:fixed; bottom:1.6rem; left:1.6rem; z-index:3; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(234,235,237,0.5); text-decoration:none; transition:color 0.2s ease; }
+.back-link:hover { color:#FF86F6; }
+
+@media (max-width:760px) {
+  .builder { grid-template-columns:1fr; }
+  .preview { position:relative; top:0; }
+  .topbar { left:20px; top:20px; }
+  .page { padding:96px 16px 120px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="topbar">
+  <div class="logo">A Look <span class="accent">InSYDE</span></div>
+  <div class="crumbs">/ Create Character</div>
+</div>
+
+<a href="signup.html" class="back-link">&larr; Back</a>
+
+<div class="page">
+  <div class="head">
+    <div class="step">Step 1 &mdash; The Look</div>
+    <h1>Create Your Character</h1>
+    <p>new account, new adventurer</p>
+  </div>
+
+  <div class="builder">
+    <div class="preview">
+      <div class="avatar-frame">
+        <img id="layerSkin" alt=""/>
+        <img id="layerClothes" alt=""/>
+        <img id="layerEyes" alt=""/>
+        <img id="layerHair" alt=""/>
+        <img id="layerBangs" alt=""/>
+        <img id="layerAcc" alt=""/>
+      </div>
+      <input class="preview-name" id="charName" type="text" placeholder="Your Name" maxlength="20"/>
+      <div class="preview-tag" id="pvTag">SYDE '29</div>
+      <button class="dice-btn" id="diceBtn">&#127922; Randomize Look</button>
+    </div>
+
+    <div class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="body">Body</button>
+        <button class="tab" data-tab="flair">Flair</button>
+      </div>
+
+      <div class="controls">
+      <div id="tabBody">
+        <div class="field">
+          <span class="field-label">Skin</span>
+          <div class="swatches" id="skinRow"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">Eyes</span>
+          <div class="eye-grid" id="shapeRow"></div>
+        </div>
+        <div class="field" id="eyeColorField">
+          <span class="field-label">Eye Colour</span>
+          <div class="swatches" id="eyeColorRow"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">Hairstyles</span>
+          <div class="pills" id="hairRow"></div>
+        </div>
+        <div class="field" id="bangField">
+          <span class="field-label">Bangs</span>
+          <div class="eye-grid" id="bangRow"></div>
+          <p class="empty-note" id="bangEmpty">No bangs yet. Front-hair styles will live here and share the Hair Colour below</p>
+        </div>
+        <div class="field">
+          <span class="field-label">Hair Colour</span>
+          <div class="swatches" id="hairColorRow"></div>
+        </div>
+      </div>
+
+      <div id="tabFlair" style="display:none;">
+        <div class="field" id="accField">
+          <span class="field-label">Accessories</span>
+          <div class="eye-grid" id="accRow"></div>
+          <p class="empty-note" id="accEmpty">No accessories yet. Once drawn, they'll show up!</p>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<div class="continue-wrap">
+  <button class="skip-btn" id="skipBtn">Skip for now</button>
+  <button class="continue-btn" id="continueBtn">Next</button>
+</div>
+
+<div class="modal-overlay" id="skipModal">
+  <div class="modal">
+    <h3>Skip your character?</h3>
+    <p>You can always make or edit one later if you don't have a character yet &mdash; but you're new here, so... maybe just do it now? &#128064;</p>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="skipCancel">Nah, I'll make one</button>
+      <button class="modal-confirm" id="skipConfirm">Skip anyway</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = 'images/sprite_assets/';   // relative to pages/createcharacter.html
+
+const SKINS = [
+  { file:'Skin1',  hex:'#ffeede' }, { file:'Skin2',  hex:'#ffdebd' },
+  { file:'Skin3',  hex:'#eab58b' }, { file:'Skin4',  hex:'#d1986d' },
+  { file:'Skin5',  hex:'#b6845f' }, { file:'Skin6',  hex:'#c17a4e' },
+  { file:'Skin7',  hex:'#9e5d37' }, { file:'Skin8',  hex:'#7a4b31' },
+  { file:'Skin9',  hex:'#583724' }, { file:'Skin10', hex:'#442a1d' },
+];
+
+const EYE_SHAPES = [
+  { id:'Face1', label:'Face 1', colors:null },
+  { id:'Face2', label:'Face 2', colors:null },
+  { id:'Face3', label:'Face 3', colors:['Brown','Blue','Green','Black'] },
+  { id:'Face4', label:'Face 4', colors:['Brown','Blue','Green','Black'] },
+];
+const EYE_COLOR_HEX = { Brown:'#5c4734', Blue:'#316396', Green:'#547a49', Black:'#211716' };
+
+// Accessory sprites go here later, e.g. { id:'Glasses', label:'Glasses' } -> file "Glasses.png"
+const ACCESSORIES = [];
+
+const HAIR_STYLES = [
+  { id: null,    label:'None'  },
+  { id:'Hair1', label:'Hair 1' },
+  { id:'Hair2', label:'Hair 2' },
+  { id:'Hair3', label:'Hair 3' },
+  { id:'Hair4', label:'Hair 4' },
+];
+const HAIR_COLORS = ['Black','Blond','Ginger','LightBrown','DarkBrown'];
+const HAIR_COLOR_HEX = { Black:'#221c1a', Blond:'#e6c878', Ginger:'#c2632a', LightBrown:'#8a5a32', DarkBrown:'#4a2f1c' };
+
+// Bangs / front-hair sprites go here later, e.g. { id:'Bang1', label:'Bang 1' } -> file "Bang1_Black.png"
+// They share HAIR_COLORS, so the file is `${id}_${HAIR_COLORS[state.hairColor]}`.
+const BANGS = [];
+
+const src = name => BASE + name + '.png';
+const shapeThumbFile = s => s.colors ? `${s.id}_${s.colors[0]}` : s.id;
+function eyeFile(){
+  const s = EYE_SHAPES[state.shape];
+  if (!s.colors) return s.id;
+  const col = s.colors[Math.min(state.color, s.colors.length - 1)];
+  return `${s.id}_${col}`;
+}
+function hairFile(){
+  const h = HAIR_STYLES[state.hairShape];
+  if (!h || !h.id) return null;          // None = bald
+  return `${h.id}_${HAIR_COLORS[state.hairColor]}`;
+}
+function bangFile(){
+  if (state.bang == null || !BANGS[state.bang]) return null;
+  return `${BANGS[state.bang].id}_${HAIR_COLORS[state.hairColor]}`;
+}
+
+const state = { name:'', skin:0, shape:2, color:0, hairShape:0, hairColor:0, bang:null, acc:null };
+
+function renderAvatar(){
+  document.getElementById('layerSkin').src    = src(SKINS[state.skin].file);
+  document.getElementById('layerClothes').src = src('DefaultClothes');   // always on (only outfit for now lol)
+  document.getElementById('layerEyes').src    = src(eyeFile());
+  const hairImg = document.getElementById('layerHair');
+  const hair = hairFile();
+  if (hair) { hairImg.src = src(hair); hairImg.style.display = 'block'; }
+  else { hairImg.removeAttribute('src'); hairImg.style.display = 'none'; }
+  const bangImg = document.getElementById('layerBangs');
+  const bang = bangFile();
+  if (bang) { bangImg.src = src(bang); bangImg.style.display = 'block'; }
+  else { bangImg.removeAttribute('src'); bangImg.style.display = 'none'; }
+  const accImg = document.getElementById('layerAcc');
+  const acc = (state.acc != null && ACCESSORIES[state.acc]) ? ACCESSORIES[state.acc].id : null;
+  if (acc) { accImg.src = src(acc); accImg.style.display = 'block'; }
+  else { accImg.removeAttribute('src'); accImg.style.display = 'none'; }
+}
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+    const name = t.dataset.tab;
+    document.getElementById('tabBody').style.display  = name === 'body'  ? 'block' : 'none';
+    document.getElementById('tabFlair').style.display = name === 'flair' ? 'block' : 'none';
+  };
+});
+
+function buildHair(){
+  const row = document.getElementById('hairRow');
+  row.innerHTML = '';
+  HAIR_STYLES.forEach((h,i) => {
+    const el = document.createElement('div');
+    el.className = 'pill' + (state.hairShape===i ? ' sel' : '');
+    el.textContent = h.label;
+    el.onclick = () => {
+      state.hairShape = i;
+      row.querySelectorAll('.pill').forEach(x=>x.classList.remove('sel'));
+      el.classList.add('sel');
+      renderAvatar();
+    };
+    row.appendChild(el);
+  });
+}
+
+function buildHairColors(){
+  const row = document.getElementById('hairColorRow');
+  row.innerHTML = '';
+  HAIR_COLORS.forEach((col,i) => {
+    const el = document.createElement('div');
+    el.className = 'swatch' + (state.hairColor===i ? ' sel' : '');
+    el.style.background = HAIR_COLOR_HEX[col] || '#888';
+    el.title = col;
+    el.onclick = () => {
+      state.hairColor = i;
+      row.querySelectorAll('.swatch').forEach(x=>x.classList.remove('sel'));
+      el.classList.add('sel');
+      buildBangs();
+      renderAvatar();
+    };
+    row.appendChild(el);
+  });
+}
+
+function buildBangs(){
+  const row = document.getElementById('bangRow');
+  const empty = document.getElementById('bangEmpty');
+  if (!BANGS.length) { row.innerHTML = ''; row.style.display = 'none'; empty.style.display = 'block'; return; }
+  empty.style.display = 'none'; row.style.display = 'flex'; row.innerHTML = '';
+  // When sprites exist: a "None" option first, then a thumbnail per bang (skin + bang in the current hair colour).
+}
+
+function buildAccessories(){
+  const row = document.getElementById('accRow');
+  const empty = document.getElementById('accEmpty');
+  if (!ACCESSORIES.length) { row.innerHTML = ''; row.style.display = 'none'; empty.style.display = 'block'; return; }
+  empty.style.display = 'none'; row.style.display = 'flex'; row.innerHTML = '';
+  // When sprites exist this mirrors the eye-shape picker; "None" first, then each accessory.
+}
+
+function buildSkins(){
+  const row = document.getElementById('skinRow');
+  row.innerHTML = '';
+  SKINS.forEach((s,i) => {
+    const el = document.createElement('div');
+    el.className = 'swatch' + (state.skin===i ? ' sel' : '');
+    el.style.background = s.hex;
+    el.title = s.file;
+    el.onclick = () => {
+      state.skin = i;
+      row.querySelectorAll('.swatch').forEach(x=>x.classList.remove('sel'));
+      el.classList.add('sel');
+      renderAvatar();
+      buildShapes();
+      buildHair();
+    };
+    row.appendChild(el);
+  });
+}
+
+function buildShapes(){
+  const row = document.getElementById('shapeRow');
+  row.innerHTML = '';
+  const skinFile = SKINS[state.skin].file;
+  EYE_SHAPES.forEach((s,i) => {
+    const opt = document.createElement('div');
+    opt.className = 'eye-opt' + (state.shape===i ? ' sel' : '');
+    opt.innerHTML =
+      `<div class="eye-win"><div class="eye-stage">
+         <img src="${src(skinFile)}" alt=""><img src="${src(shapeThumbFile(s))}" alt="">
+       </div></div>
+       <div class="eye-cap">${s.label}</div>`;
+    opt.onclick = () => {
+      state.shape = i;
+      state.color = 0;
+      row.querySelectorAll('.eye-opt').forEach(x=>x.classList.remove('sel'));
+      opt.classList.add('sel');
+      buildColors();
+      renderAvatar();
+    };
+    row.appendChild(opt);
+  });
+}
+
+function buildColors(){
+  const field = document.getElementById('eyeColorField');
+  const row = document.getElementById('eyeColorRow');
+  const s = EYE_SHAPES[state.shape];
+  if (!s.colors || s.colors.length <= 1) { field.style.display = 'none'; return; }
+  field.style.display = 'block';
+  row.innerHTML = '';
+  s.colors.forEach((col,i) => {
+    const el = document.createElement('div');
+    el.className = 'swatch' + (state.color===i ? ' sel' : '');
+    el.style.background = EYE_COLOR_HEX[col] || '#888';
+    el.title = col;
+    el.onclick = () => {
+      state.color = i;
+      row.querySelectorAll('.swatch').forEach(x=>x.classList.remove('sel'));
+      el.classList.add('sel');
+      renderAvatar();
+    };
+    row.appendChild(el);
+  });
+}
+
+document.getElementById('charName').addEventListener('input', e => { state.name = e.target.value; });
+document.getElementById('diceBtn').addEventListener('click', () => {
+  state.skin  = Math.floor(Math.random()*SKINS.length);
+  state.shape = Math.floor(Math.random()*EYE_SHAPES.length);
+  const s = EYE_SHAPES[state.shape];
+  state.color = s.colors ? Math.floor(Math.random()*s.colors.length) : 0;
+  state.hairShape = Math.floor(Math.random()*HAIR_STYLES.length);
+  state.hairColor = Math.floor(Math.random()*HAIR_COLORS.length);
+  if (ACCESSORIES.length) state.acc = Math.random() < 0.5 ? null : Math.floor(Math.random()*ACCESSORIES.length);
+  if (BANGS.length) state.bang = Math.random() < 0.5 ? null : Math.floor(Math.random()*BANGS.length);
+  buildSkins(); buildShapes(); buildColors(); buildHair(); buildHairColors(); buildBangs(); buildAccessories(); renderAvatar();
+});
+
+document.getElementById('continueBtn').addEventListener('click', () => {
+  const name = state.name.trim();
+  if (!name) {
+    const inp = document.getElementById('charName');
+    inp.focus(); inp.style.borderColor = '#ff6b6b';
+    return;
+  }
+  const s = EYE_SHAPES[state.shape];
+  const character = {
+    name,
+    skin: SKINS[state.skin].file,
+    clothes: 'DefaultClothes',
+    eyeShape: s.id,
+    eyeColor: s.colors ? s.colors[Math.min(state.color, s.colors.length-1)] : null,
+    eyes: eyeFile(),
+    hairStyle: HAIR_STYLES[state.hairShape].id,
+    hairColor: HAIR_COLORS[state.hairColor],
+    hair: hairFile(),
+    bangStyle: (state.bang != null && BANGS[state.bang]) ? BANGS[state.bang].id : null,
+    bang: bangFile(),
+    accessory: (state.acc != null && ACCESSORIES[state.acc]) ? ACCESSORIES[state.acc].id : null,
+    idx: { skin: state.skin, shape: state.shape, color: state.color, acc: state.acc, hairShape: state.hairShape, hairColor: state.hairColor, bang: state.bang }
+  };
+  try {
+    localStorage.setItem('syde29_character', JSON.stringify(character));
+    const cu = JSON.parse(localStorage.getItem('syde29_current_user') || 'null');
+    if (cu) {
+      cu.character = character;
+      localStorage.setItem('syde29_current_user', JSON.stringify(cu));
+      let users = JSON.parse(localStorage.getItem('syde29_users') || '[]');
+      users = users.map(u => u.email === cu.email ? { ...u, character } : u);
+      localStorage.setItem('syde29_users', JSON.stringify(users));
+    }
+  } catch (e) {}
+  window.location.href = 'createpersonality.html';
+});
+
+const skipModal = document.getElementById('skipModal');
+document.getElementById('skipBtn').addEventListener('click', () => skipModal.classList.add('show'));
+document.getElementById('skipCancel').addEventListener('click', () => skipModal.classList.remove('show'));
+document.getElementById('skipConfirm').addEventListener('click', () => { window.location.href = 'choose.html'; });
+skipModal.addEventListener('click', e => { if (e.target === skipModal) skipModal.classList.remove('show'); });
+
+(function prefill(){
+  try {
+    const cu = JSON.parse(localStorage.getItem('syde29_current_user') || 'null');
+    if (cu && cu.firstName) { state.name = cu.firstName; document.getElementById('charName').value = cu.firstName; }
+  } catch (e) {}
+})();
+
+buildSkins(); buildShapes(); buildColors(); buildHair(); buildHairColors(); buildBangs(); buildAccessories(); renderAvatar();
+
+function drawStar(ctx, cx, cy, sH, sV, a, config) {
+  const { glow, colorFn } = config;
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
+  glow.forEach(g => bg.addColorStop(g.stop, g.color(a)));
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, sH * 2.2, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill(); ctx.restore();
+  for (let i = 80; i >= 0; i--) {
+    const t = i / 80, sh = sH * t, sv = sV * t;
+    const [r, g, b] = colorFn(t);
+    const op = a * 0.55 * (1 - Math.pow(t, 0.8));
+    if (op <= 0.002) continue;
+    const wx = sh * 0.08, wy = sv * 0.08;
+    ctx.save(); ctx.globalAlpha = op; ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - sv);
+    ctx.quadraticCurveTo(cx + wx, cy - wy, cx + sh, cy);
+    ctx.quadraticCurveTo(cx + wx, cy + wy, cx, cy + sv);
+    ctx.quadraticCurveTo(cx - wx, cy + wy, cx - sh, cy);
+    ctx.quadraticCurveTo(cx - wx, cy - wy, cx, cy - sv);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+}
+const greenStar = { glow:[{stop:0,color:a=>`rgba(90,40,100,${a*0.28})`},{stop:0.35,color:a=>`rgba(30,10,150,${a*0.14})`},{stop:0.7,color:a=>`rgba(200,80,35,${a*0.06})`},{stop:1,color:()=>`rgba(10,150,60,0)`}], colorFn:t=>[58+(180-58)*t,79+(240-79)*t,212+(50-212)*t] };
+const purpleStar = { glow:[{stop:0,color:a=>`rgba(120,40,200,${a*0.3})`},{stop:1,color:()=>`rgba(0,0,0,0)`}], colorFn:t=>[80+(130-80)*t,30+(60-30)*t,255] };
+const pinkStar = { glow:[{stop:0,color:a=>`rgba(200,60,130,${a*0.28})`},{stop:1,color:()=>`rgba(0,0,0,0)`}], colorFn:t=>[255,60+(150-60)*t,180+(80-180)*t] };
+function renderBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = c.offsetWidth, H = c.height = c.offsetHeight;
+  const ctx = c.getContext('2d'); ctx.clearRect(0, 0, W, H);
+  const sH = Math.min(W, H) * 0.3, sV = Math.min(W, H) * 0.36;
+  ctx.filter = 'blur(14px)';
+  drawStar(ctx, W*0.1, H*0.5, sH, sV, 1, greenStar);
+  drawStar(ctx, W*0.88, H*0.04, sH, sV, 1, purpleStar);
+  drawStar(ctx, W*0.85, H*0.82, sH*0.85, sV*0.85, 1, pinkStar);
+  ctx.filter = 'none';
+}
+window.addEventListener('load', renderBg);
+window.addEventListener('resize', renderBg);
+</script>
+</body>
+</html>
