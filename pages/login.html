@@ -247,6 +247,18 @@ html, body {
   color: #FF86F6;
 }
 
+.success-message {
+  display: none;
+  padding: 12px 16px;
+  background: rgba(197,255,121,0.15);
+  border: 1px solid rgba(197,255,121,0.3);
+  border-radius: 8px;
+  color: #C5FF79;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
 .error-message {
   display: none;
   padding: 12px 16px;
@@ -288,6 +300,7 @@ html, body {
     </div>
 
     <div class="error-message" id="errorMsg"></div>
+    <div class="success-message" id="successMsg"></div>
 
     <form id="loginForm">
       <div class="form-group">
@@ -312,7 +325,7 @@ html, body {
         />
       </div>
 
-      <a href="#" class="forgot-password">Forgot password?</a>
+      <a href="#" class="forgot-password" id="forgotLink">Forgot password?</a>
 
       <button type="submit" class="login-btn">Sign In</button>
     </form>
@@ -323,7 +336,13 @@ html, body {
   </div>
 </div>
 
-<script>
+<script type="module">
+import { auth } from "./firebase-config.js";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 function drawStar(ctx, cx, cy, sH, sV, a, config) {
   const { glow, colorFn } = config;
   const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sH * 2.2);
@@ -402,37 +421,77 @@ window.addEventListener('resize', renderBg);
 
 const loginForm = document.getElementById('loginForm');
 const errorMsg = document.getElementById('errorMsg');
+const successMsg = document.getElementById('successMsg');
+const forgotLink = document.getElementById('forgotLink');
+const loginBtn = loginForm.querySelector('.login-btn');
 
-loginForm.addEventListener('submit', (e) => {
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+  successMsg.style.display = 'none';
+}
+
+function showSuccess(msg) {
+  successMsg.textContent = msg;
+  successMsg.style.display = 'block';
+  errorMsg.style.display = 'none';
+}
+
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   
-  const email = document.getElementById('email').value.trim();
+  const email = document.getElementById('email').value.trim().toLowerCase();
   const password = document.getElementById('password').value;
   
   if (!email || !password) {
-    errorMsg.textContent = 'Please fill in all fields';
-    errorMsg.style.display = 'block';
+    showError('Please fill in all fields');
     return;
   }
-  
-  // Get stored users and validate credentials
-  const users = JSON.parse(localStorage.getItem('syde29_users') || '[]');
-  const user = users.find(u => u.email === email);
-  
-  if (!user) {
-    errorMsg.textContent = 'No account found with this email. Please sign up first.';
-    errorMsg.style.display = 'block';
+
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Signing in...';
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = 'choose.html';
+  } catch (err) {
+    if (err.code === 'auth/invalid-credential' ||
+        err.code === 'auth/wrong-password' ||
+        err.code === 'auth/user-not-found') {
+      showError('Incorrect email or password.');
+    } else if (err.code === 'auth/invalid-email') {
+      showError('That email address looks invalid.');
+    } else if (err.code === 'auth/too-many-requests') {
+      showError('Too many attempts. Try again later or reset your password.');
+    } else {
+      showError('Something went wrong: ' + (err.message || err.code));
+    }
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Sign In';
+  }
+});
+
+// Forgot password -> send a real reset email via Firebase
+forgotLink.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim().toLowerCase();
+
+  if (!email) {
+    showError('Enter your email above first, then click \u201CForgot password?\u201D');
     return;
   }
-  
-  if (user.password !== password) {
-    errorMsg.textContent = 'Incorrect password. Please try again.';
-    errorMsg.style.display = 'block';
-    return;
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showSuccess('Password reset email sent! Check your inbox.');
+  } catch (err) {
+    if (err.code === 'auth/invalid-email') {
+      showError('That email address looks invalid.');
+    } else {
+      showSuccess('If that email has an account, a reset link is on its way.');
+    }
   }
-  
-  localStorage.setItem('syde29_current_user', JSON.stringify(user));
-  window.location.href = 'choose.html';
 });
 </script>
 
